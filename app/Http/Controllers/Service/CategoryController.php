@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Service;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Spec;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -74,7 +75,7 @@ class CategoryController extends Controller
 
         if ($id) {
             $pid = $request->input('pid');
-            $cate = Category::where('id', $id)->first();
+            $cate = Category::where('operation_id', 1)->where('id', $id)->first();
             if (!$cate)  return $this->build_return_json(0, [], '数据错误');
             if ($cate->name != $name) {
                 $cate_by_name = Category::where('name', $name)->where('pid', $pid)->first();
@@ -152,14 +153,56 @@ class CategoryController extends Controller
         return $this->build_return_json(1, [] , 'success');
     }
 
-    public function getCateInfo(Request $request) {
-        $id = $request->input('id');
-        $data = Category::where('operation_id', 1)->where('id', $id)->first();
-        if (empty($data)) return $this->build_return_json(0, [], '无此分类');
+    public function getSpecList() {
+        $oneSpecs = Spec::where('operation_id', 1)
+            ->where('pid', 0)
+            ->get();
+        $data = [];
+        if (count($oneSpecs) > 0 ) {
+            foreach ($oneSpecs as $index => $oneSpec) {
+                $data[$index] = $oneSpec;
+                $data[$index]['list'] = Spec::where('operation_id', 1)
+                    ->where('pid', $oneSpec->id)
+                    ->get()
+                    ->toArray();
+            }
+        }
         return $this->build_return_json(1, $data, 'success');
-
     }
 
+    public function saveSpec(Request $request) {
+        $id = $request->input('id');
+        $name = $request->input('name');
+
+        if (!$name || mb_strlen($name) > 10) return $this->build_return_json(0, [], '规格值不能为空或长度不能超过10');
+
+        if ($id) {
+            $pid = $request->input('pid');
+            $spec = Spec::where('operation_id', 1)->where('id', $id)->first();
+            if (!$spec) return $this->build_return_json(0, [], '规格值不存在');
+            if ($spec->name != $name) {
+                $spec_by_name = Spec::where('operation_id', 1)->where('name', $name)->where('pid', $pid)->first();
+                if ($spec_by_name) return $this->build_return_json(0, [], '统一分类下名称不能重复');
+            }
+        } else {
+            $pid = $request->input('pid');
+            $spec_by_name = Spec::where('operation_id', 1)->where('name', $name)->where('pid', $pid)->first();
+            if ($spec_by_name) return $this->build_return_json(0, [], '同一分类下名字不能重复');
+            $spec = new Spec();
+        }
+        $spec->pid  = $pid;
+        $spec->name = $name;
+        $spec->operation_id = "1";
+        $spec->save();
+
+        if (!$spec->rank){
+            $spec->rank = $spec->id;
+            $spec->update();
+        }
+
+        return $this->build_return_json(1, [], "操作成功");
+
+    }
 
 }
 

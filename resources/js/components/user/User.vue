@@ -31,9 +31,9 @@
                 <el-table-column prop="mobile" label="手机号码"  width="180"></el-table-column>
                 <el-table-column prop="email" label="邮箱"  width="180"></el-table-column>
 
-                <el-table-column prop="status" label="状态" >
+                <el-table-column prop="status" label="状态" width="100">
                     <template v-slot="scope">
-                        <el-switch v-model="scope.row.status" @change="changeStatus(scope.row)">
+                        <el-switch v-model="scope.row.status"  active-value="1" inactive-value="0" @change="changeStatus(scope.row)">
                         </el-switch>
                     </template>
                 </el-table-column>
@@ -142,6 +142,7 @@
                     limit: 10,
 
                 },
+                value: "100",
                 adminList: [],
                 total: 0,
                 addAdmin: false,
@@ -154,6 +155,8 @@
                     email: '',
                     mobile: '',
                 },
+
+                status: '',
                 //验证规则
                 addFromRules: {
                     username: [
@@ -206,9 +209,17 @@
             },
 
             //改变状态
-            changeStatus(adminInfo) {
-                this.$http.put('/changeStatus',{ id:adminInfo.id, type: adminInfo.status});
+            async changeStatus(adminInfo) {
+                console.log(adminInfo);
+                const{data: res} = await this.$http.post('/changeStatus',{ id:adminInfo.id, type: adminInfo.status})
+                if(res.status != 1) {
+                    adminInfo.status = !adminInfo.status;
+                    return this.$message.error(res.msg);
+                }
+                this.getAdminList();
+                return this.$message.success(res.msg);
             },
+
             //重置表单
             addDiglogClosed() {
                 this.$refs.addFromRef.resetFields();

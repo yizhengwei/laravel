@@ -20,10 +20,6 @@ export default new VueRouter({
             redirect: '/login',
         },
         {
-            path: '/test',
-            component: Test
-        },
-        {
             path: '/login',
             component: Login
         },
@@ -37,6 +33,7 @@ export default new VueRouter({
                 {path: '/user', component: User},
                 {path: '/list',component: List},
                 {path: '/category',component: Category},
+                {path: '/test', component: Test},
                 ],
         }
 

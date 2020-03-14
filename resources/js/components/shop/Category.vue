@@ -12,12 +12,10 @@
         <el-card>
             <!--按钮-->
             <el-tabs v-model="tab" >
-                <el-tab-pane label="用户管理" name="first"></el-tab-pane>
-
                 <el-tab-pane label="商品分类" name="second">
                     <el-row>
                         <el-col align="right">
-                            <el-button size="mini" align="right" type="primary" @click="showAddCategory('', 1)">新增分类</el-button>
+                            <el-button size="mini" align="right" type="primary" @click="showAddCategory(newCate, 'N',1)">新增分类</el-button>
                         </el-col>
                     </el-row>
 
@@ -40,18 +38,18 @@
                                         v-if="scope.row.level==1"
                                         type="text"
                                         size="mini">
-                                        <span style="color:#1890FF" @click="showAddCategory(scope.row, '2')">新增二级分类</span>
+                                        <span style="color:#1890FF" @click="showAddCategory(scope.row, 'N',2)">新增二级分类</span>
                                     </el-button>
                                     <el-button
                                         v-if="scope.row.level==2"
                                         type="text"
                                         size="mini">
-                                        <span style="color:#1890FF"  @click="showAddCategory(scope.row, '3')">新增三级分类</span>
+                                        <span style="color:#1890FF"  @click="showAddCategory(scope.row, 'N',3)">新增三级分类</span>
                                     </el-button>
                                     <el-button
                                         type="text"
                                         size="mini">
-                                        <span style="color:#1890FF"  @click="editCategory(scope.row.id)">编辑</span>
+                                        <span style="color:#1890FF"  @click="showAddCategory(scope.row, 'Y',4)">编辑</span>
                                     </el-button>
                                     <el-button
                                         type="text"
@@ -74,10 +72,9 @@
                                 </div>
                             </template>
                         </el-table-column>
-
                     </el-table>
-
                 </el-tab-pane>
+
                 <el-tab-pane label="商品规格" name="third">
                     <el-row>
                         <el-col align="right">
@@ -104,14 +101,13 @@
                                         v-if="scope.row.level==1"
                                         type="text"
                                         size="mini">
-                                        <span style="color:#1890FF" @click="showAddSpecModal(scope.row, 'N')">新增规格值</span>
+                                        <span style="color:#1890FF" @click="showAddCategory(scope.row, 'N')">新增规格值</span>
                                     </el-button>
                                     <el-button
                                         type="text"
                                         size="mini"
-                                        v-if="!(scope.row.level==1 && scope.row.status==1)"
                                     >
-                                        <span style="color:#1890FF" @click="showAddSpecModal(scope.row, 'Y')">编辑</span>
+                                        <span style="color:#1890FF" @click="showAddCategory(scope.row, 'Y')">编辑</span>
                                     </el-button>
                                     <el-button
                                         type="text"
@@ -140,7 +136,8 @@
                     </el-table>
 
                 </el-tab-pane>
-                <el-tab-pane label="商品属性" name="fourth"></el-tab-pane>
+
+
             </el-tabs>
         </el-card>
 
@@ -151,35 +148,15 @@
                    width="30%"
                    @close="addCateDiglogClosed"
         >
-            <el-form :model="form" :rules="addCateFromRules" ref="addCateFromRef" label-width="80px">
+            <el-form :model="newCate" :rules="addCateFromRules" ref="addCateFromRef" label-width="80px">
                 <el-form-item label="分类名" prop="name" size="mini">
-                    <el-input v-model="form.name" ></el-input>
+                    <el-input v-model="newCate.name" ></el-input>
                 </el-form-item>
             </el-form>
 
             <div slot="footer" class="dialog-footer">
                 <el-button @click="showAddCate = false">取 消</el-button>
                 <el-button type="primary" @click="add()">确定</el-button>
-            </div>
-
-        </el-dialog>
-
-        <!--弹出框-->
-        <el-dialog title="编辑分类"
-                   :visible.sync="editCate"
-                   :close-on-click-modal="false"
-                   width="30%"
-                   @close="editCateDiglogClosed"
-        >
-            <el-form :model="editFrom" :rules="editCateFromRules" ref="editCateFromRef" label-width="80px">
-                <el-form-item label="分类名" prop="name" size="mini">
-                    <el-input v-model="editFrom.name" ></el-input>
-                </el-form-item>
-            </el-form>
-
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="editCate = false">取 消</el-button>
-                <el-button type="primary" @click="edit()">确定</el-button>
             </div>
 
         </el-dialog>
@@ -194,104 +171,91 @@
             return {
                 //页头;
                 tab: 'second',
+
                 //分类列表
                 categoryList: [],
 
+                //规格列表
                 specList: [],
 
-                showAddCate: false,
-                editCate: false,
-
-                form: {
-                    name: '',
+                //弹出框绑定数据
+                newCate: {
+                    id: '',
+                    pid:'',
+                    name:'',
                 },
-
-                editFrom: {},
-
+                showAddCate: false,
                 addCateFromRules: {
                     name: [
                         { required: true, message: '请输入分类名', trigger: 'blur'},
                         { min: 1, max: 10, message: '分类名称不能为空或长度不能多于10个字符', trigger: 'blur' }
                     ],
                 },
-                editCateFromRules: {
-                    name: [
-                        { required: true, message: '请输入分类名', trigger: 'blur'},
-                        { min: 1, max: 10, message: '分类名称不能为空或长度不能多于10个字符', trigger: 'blur' }
-                    ],
-                },
-
-                formLabelWidth: '120px',
             };
         },
         methods: {
-
             //获取分类列表
-           async getCategoryList() {
-              const {data: res} =  await this.$http.post('/getCategoryList');
-               if(res.status != 1) return this.$message.error(res.msg);
-               this.categoryList = res.content;
-
+            async getCategoryList() {
+                var that = this;
+                const {data: res} =  await this.$http.post('/getCategoryList');
+                if(res.status != 1) return this.$message.error(res.msg);
+                var list = res.content;
+                list.forEach(function (item, i) {
+                    item.level=1;
+                    item.index= i;
+                    var sub2 = item.list;
+                    if(sub2){
+                        sub2.forEach(function(item2, j){
+                            item2.level = 2;
+                            item2.index = i+'-'+j;
+                            var sub3 = item2.list;
+                            if(sub3){
+                                sub3.forEach(function(item3, k){
+                                    item3.level = 3;
+                                    item3.index = i+'-'+j+'-'+k;
+                                })
+                            }
+                        })
+                    }
+                })
+                that.categoryList = list;
+                console.log(that.categoryList);
             },
 
+
+            //重置表单
             addCateDiglogClosed() {
                 this.$refs.addCateFromRef.resetFields();
-                console.log('aaa');
             },
 
-            editCateDiglogClosed() {
-                this.$refs.editCateFromRef.resetFields();
-            },
-
-            //显示新增分类
-            showAddCategory(row,val){
+            showAddCategory(row, isCateEdit,val) {
                 let that = this;
-                if(val == 1) {
-                    that.pid = 0;
-                } else {
-                    that.pid = row.id;
-                }
+                console.log(row)
                 this.showAddCate = true;
+                let addLevel = row.level === undefined ? 'a' : row.level;
+                console.log(addLevel)
+                if(addLevel == 'a'){
+                    this.newCate.pid = 0;
+                }else{
+                    this.newCate.pid = row.id;
+                }
+                if(isCateEdit == 'Y'){
+                    this.newCate =JSON.parse(JSON.stringify(row)) ;
+                }
             },
 
             //新增分类
             async add() {
-                let that = this;
-                this.showAddCate = false;
-                let pid = that.pid;
-                const {data: res} = await this.$http.post('/saveCategory', {pid: pid, name: this.form.name});
+                const {data: res} = await this.$http.post('/saveCategory', this.newCate);
                 if(res.status != 1) return this.$message.error(res.msg);
                 this.$message.success(res.msg);
+                this.showAddCate = false;
                 this.getCategoryList();
-
-            },
-            //编辑
-            edit() {
-                this.$refs.editCateFromRef.validate(async valid=> {
-                    if (!valid) return
-                    let that = this;
-                    let pid = that.pid;
-                    console.log(pid)
-                    const {data: res} = await this.$http.post('/saveCategory',{id: this.editFrom.id,pid: this.editFrom.pid, name: this.editFrom.name});
-                    if(res.status != 1) return this.$message.error(res.msg);
-                    this.$message.success(res.msg);
-                    this.editCate = false;
-                    this.getCategoryList();
-                })
-            },
-
-            //编辑分类
-            async editCategory(id) {
-                console.log(id);
-                const {data: res} = await this.$http.get('/getCateInfo?id='+id);
-                if (res.status != 1) return this.$message.error(res.msg);
-                this.editFrom = res.content;
-                this.editCate = true;
             },
 
             //移动分类
             async moveCate(id, type) {
-                const {data: res} = await this.$http.post('/sortCategory?id='+id, {type: type});
+                const {data: res} = await this.$http.post('/sortCategory?', {id: id,type: type});
                 if(res.status != 1) return this.$message.error(res.msg);
                 this.$message.success(res.msg);
                 this.getCategoryList();
@@ -308,23 +272,42 @@
                 if(confirmResult != 'confirm') {
                     return this.$message.info('取消删除');
                 }
-                const {data: res} = await this.$http.post('/delCategory?id='+id);
+                const {data: res} = await this.$http.post('/delCategory?',{id: id});
                 if(res.status != 1) return this.$message.error(res.msg);
                 this.$message.success(res.msg);
                 this.getCategoryList();
             },
 
 
+            async getSpecList () {
+                var that = this;
+                const {data: res} = await this.$http.post('/getSpecList');
+                if (res.status != 1) return this.$message.error(res.msg);
+                var list = res.content;
+                list.forEach(function(item, i) {
+                    item.level=1;
+                    item.index= i;
+                    var specVal = item.list || [];
+                    specVal.forEach( function( item2, j ){
+                        item2.level = 2;
+                        item2.index = i+'-'+j;
+                    })
+                })
+                that.specList = list;
+            }
+
         },
         mounted() {
             this.getCategoryList();
-            // this.add();
+            this.getSpecList();
+
         }
-
-
     };
 </script>
 
 <style scoped>
 
 </style>
+
+
+

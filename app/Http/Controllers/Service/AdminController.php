@@ -44,19 +44,20 @@ class AdminController extends Controller
         $id = $request->input('id');
         $type = $request->input('type');
 
-        if (!$id || !$type) return $this->build_return_json(0,[], "缺少必要参数");
+        if (!$id || !in_array($type,[0,1])) return $this->build_return_json(0,[], "缺少必要参数");
 
         $data = Admin::where('operation_id', 1)->where('id', $id)->first();
 
         if ($data->count() > 0) {
-            if ($type == "true") {
+            if ($type == 1) {
                 $data->status = 1;
             } else {
                 $data->status = 0;
             }
-
             $data->update();
         }
+
+        return $this->build_return_json(1,[], 'success');
 
     }
 

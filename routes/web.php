@@ -47,6 +47,9 @@ Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
     Route::any('/delAdmin', 'AdminController@delAdmin');
     Route::any('/sortCategory', 'CategoryController@sortCategory');
     Route::any('/getCateInfo', 'CategoryController@getCateInfo');
+    Route::any('/getSpecList', 'CategoryController@getSpecList');
+    Route::any('/saveSpec', 'CategoryController@saveSpec');
+
 
 
 
