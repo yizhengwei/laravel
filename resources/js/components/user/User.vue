@@ -27,7 +27,7 @@
                 stripe
                 style="width: 100%">
                 <el-table-column prop="id" label="#" width="180"></el-table-column>
-                <el-table-column prop="username" label="姓名"  width="180"></el-table-column>
+                <el-table-column prop="username" label="用户名"  width="180"></el-table-column>
                 <el-table-column prop="mobile" label="手机号码"  width="180"></el-table-column>
                 <el-table-column prop="email" label="邮箱"  width="180"></el-table-column>
 
@@ -37,10 +37,21 @@
                         </el-switch>
                     </template>
                 </el-table-column>
+
                 <el-table-column label="操作" v-slot="scope">
                     <template>
-                        <el-button size="mini" type="primary" icon="el-icon-edit" @click="showAdminInfo(scope.row.id)"></el-button>
-                        <el-button size="mini" type="danger" icon="el-icon-delete" @click="delAdmin(scope.row.id)"></el-button>
+                        <el-button
+                            type="text"
+                            size="mini"
+                        >
+                            <span style="color:#1890FF" @click="showAdminInfo(scope.row.id)">编辑</span>
+                        </el-button>
+                        <el-button
+                            type="text"
+                            size="mini"
+                           >
+                            <span style="color:red" @click="delAdmin(scope.row.id)">删除</span>
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>

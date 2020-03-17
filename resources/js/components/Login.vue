@@ -37,6 +37,7 @@
                     username: 'admin',
                     password: '123456',
                 },
+                categoryList: [],
                 //表单验证规则对象
                 loginFormRules: {
                     //验证用户名是否合法
@@ -66,7 +67,7 @@
                         this.$router.push('/index');
 
                     });
-                }
+                },
 
             }
         },

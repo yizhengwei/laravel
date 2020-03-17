@@ -55,8 +55,6 @@ class CategoryController extends Controller
                             ->orderBy('rank', 'ASC')
                             ->get()
                             ->toArray();
-
-
                         $data[$index]['list'][] = $tmp;
 
                     }
@@ -163,6 +161,7 @@ class CategoryController extends Controller
                 $data[$index] = $oneSpec;
                 $data[$index]['list'] = Spec::where('operation_id', 1)
                     ->where('pid', $oneSpec->id)
+                    ->orderBy('rank','ASC')
                     ->get()
                     ->toArray();
             }
@@ -190,6 +189,7 @@ class CategoryController extends Controller
             if ($spec_by_name) return $this->build_return_json(0, [], '同一分类下名字不能重复');
             $spec = new Spec();
         }
+
         $spec->pid  = $pid;
         $spec->name = $name;
         $spec->operation_id = "1";
@@ -201,6 +201,55 @@ class CategoryController extends Controller
         }
 
         return $this->build_return_json(1, [], "操作成功");
+
+    }
+
+    //删除规格
+    public function delSpec(Request $request) {
+        $id = $request->input('id');
+        $spec = Spec::where('id', $id)->first();
+        if (!$spec) return $this->build_return_json(0, [], '数据错误');
+
+        $spec->operation_id = "0";
+        $spec->pid  = "0";
+        $spec->update();
+
+        return $this->build_return_json(1, [], '操作成功');
+    }
+
+    public function sortSpec(Request $request) {
+        $id = $request->input('id');
+        $spec = Spec::where('operation_id', 1)->where('id', $id)->first();
+        if (empty($spec)) return $this->build_return_json(0, [], '数据不存在');
+
+        $type = $request->input('type', 'up');
+        if (!in_array($type,['up', 'down'])) return $this->build_return_json(0, [], '非法操作');
+
+        if ($type == 'up') {
+            $pre_spec = Spec::where('operation_id', 1)
+                ->where('pid', $spec->pid)
+                ->where('rank', '<', $spec->rank)
+                ->orderBy('rank', 'DESC')
+                ->first();
+
+        } else {
+            $pre_spec = Spec::where('operation_id', 1)
+                ->where('pid', $spec->pid)
+                ->where('rank', '>', $spec->rank)
+                ->orderBy('rank', 'ASC')
+                ->first();
+        }
+        if (!$pre_spec) return $this->build_return_json(1, [], 'success');
+        $pre_spec_rank = $pre_spec->rank;
+        $spec_rank = $spec->rank;
+
+        $spec->rank = $pre_spec_rank;
+        $pre_spec->rank = $spec_rank;
+
+        $spec->update();
+        $pre_spec->update();
+
+        return $this->build_return_json(1, [], '操作成功');
 
     }
 

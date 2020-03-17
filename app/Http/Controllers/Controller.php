@@ -15,11 +15,5 @@ class Controller extends BaseController
         return response()->json(array('status' => $status, 'content' => $content, 'msg' => $msg));
     }
 
-    public function attributes () {
-        $attributes = array();
-        $this->each(function ($item) use (&$attributes){
-            $attributes[] = $item->attributes();
-        });
-        return $attributes;
-    }
+
 }

@@ -9,6 +9,7 @@ import User from "../components/user/User";
 import Category from "../components/shop/Category";
 import List from "../components/shop/List";
 import Test from "../components/Test";
+import AA from "../components/shop/AA";
 
 //
 Vue.use(VueRouter);
@@ -34,6 +35,7 @@ export default new VueRouter({
                 {path: '/list',component: List},
                 {path: '/category',component: Category},
                 {path: '/test', component: Test},
+                {path: '/aa', component: AA},
                 ],
         }
 

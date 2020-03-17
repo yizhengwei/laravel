@@ -8,6 +8,7 @@
             <el-breadcrumb-item>商品分类</el-breadcrumb-item>
         </el-breadcrumb>
 
+
         <!--卡片-->
         <el-card>
             <!--按钮-->
@@ -78,7 +79,7 @@
                 <el-tab-pane label="商品规格" name="third">
                     <el-row>
                         <el-col align="right">
-                            <el-button size="mini" align="right" type="primary" @click="showAddCategory('', 1)">新增规格</el-button>
+                            <el-button size="mini" align="right" type="primary" @click="showAddSpecs('', 1)">新增规格</el-button>
                         </el-col>
                     </el-row>
 
@@ -101,13 +102,13 @@
                                         v-if="scope.row.level==1"
                                         type="text"
                                         size="mini">
-                                        <span style="color:#1890FF" @click="showAddCategory(scope.row, 'N')">新增规格值</span>
+                                        <span style="color:#1890FF" @click="showAddSpecs(scope.row, 'N')">新增规格值</span>
                                     </el-button>
                                     <el-button
                                         type="text"
                                         size="mini"
                                     >
-                                        <span style="color:#1890FF" @click="showAddCategory(scope.row, 'Y')">编辑</span>
+                                        <span style="color:#1890FF" @click="showAddSpecs(scope.row, 'Y')">编辑</span>
                                     </el-button>
                                     <el-button
                                         type="text"
@@ -161,6 +162,26 @@
 
         </el-dialog>
 
+        <!--弹出框-->
+        <el-dialog title="商品规格"
+                   :visible.sync="showAddSpec"
+                   :close-on-click-modal="false"
+                   width="30%"
+                   @close="addSpecDiglogClosed"
+        >
+            <el-form :model="newSpec" :rules="addSpecFromRules" ref="addSpecFromRef" label-width="80px">
+                <el-form-item label="规格值" prop="name" size="mini">
+                    <el-input v-model="newSpec.name" ></el-input>
+                </el-form-item>
+            </el-form>
+
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="showAddSpec = false">取 消</el-button>
+                <el-button type="primary" @click="addSpec()">确定</el-button>
+            </div>
+
+        </el-dialog>
+
     </div>
 
 </template>
@@ -175,8 +196,6 @@
                 //分类列表
                 categoryList: [],
 
-                //规格列表
-                specList: [],
 
                 //弹出框绑定数据
                 newCate: {
@@ -191,6 +210,24 @@
                         { min: 1, max: 10, message: '分类名称不能为空或长度不能多于10个字符', trigger: 'blur' }
                     ],
                 },
+
+
+                //规格列表
+                specList: [],
+                newSpec: {
+                    id: '',
+                    pid: '',
+                    name: '',
+
+                },
+
+                showAddSpec: false,
+                addSpecFromRules: {
+                    name: [
+                        { required: true, message: '请输入分类名', trigger: 'blur'},
+                        { min: 1, max: 10, message: '规格名称不能为空或长度不能多于10个字符', trigger: 'blur' }
+                    ],
+                }
             };
         },
         methods: {
@@ -294,7 +331,62 @@
                     })
                 })
                 that.specList = list;
-            }
+            },
+
+            //重置表单
+            addSpecDiglogClosed() {
+                this.$refs.addSpecFromRef.resetFields();
+            },
+
+
+            showAddSpecs(row, isSpecEdit) {
+                let that = this;
+                console.log(row.name)
+                this.showAddSpec = true;
+                let addLevel = row.level === undefined ? 'a' : row.level;
+                console.log(addLevel)
+                if(addLevel == 'a'){
+                    this.newSpec.pid = 0;
+                } else {
+                    this.newSpec.pid = row.id;
+                }
+                if(isSpecEdit == 'Y'){
+                    this.newSpec =JSON.parse(JSON.stringify(row)) ;
+                }
+            },
+
+            //新增分类
+            async addSpec() {
+                const {data: res} = await this.$http.post('/saveSpec', this.newSpec);
+                if(res.status != 1) return this.$message.error(res.msg);
+                this.$message.success(res.msg);
+                this.showAddSpec = false;
+                this.getSpecList();
+            },
+
+            //删除分类
+            async deleteSpec(id) {
+                const confirmResult = await this.$confirm('是否删除该规格?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).catch(res => res)
+
+                if(confirmResult != 'confirm') {
+                    return this.$message.info('取消删除');
+                }
+                const {data: res} = await this.$http.post('/delSpec?',{id: id});
+                if(res.status != 1) return this.$message.error(res.msg);
+                this.$message.success(res.msg);
+                this.getSpecList();
+            },
+
+            async moveSpecs(id, type) {
+                const {data: res} = await this.$http.post('/sortSpec?', {id: id,type: type});
+                if(res.status != 1) return this.$message.error(res.msg);
+                this.$message.success(res.msg);
+                this.getSpecList();
+            },
 
         },
         mounted() {
