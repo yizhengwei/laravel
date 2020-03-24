@@ -10,11 +10,34 @@ class Goods extends Model
     protected $table = 'goods';
     protected $primaryKey = 'id';
     public $timestamps = false;
+    /**
+     * @var int
+     */
+//    private $operation_id;
+//    private $brand_id;
+//    private $goods_no;
+//    private $goods_name;
+//    private $class_first;
+//    private $class_second;
+//    private $class_third;
 
+
+    public function getCateId () {
+    $cates = Goods::where('id', $this->id)
+        ->select('class_first', 'class_second', 'class_third')
+        ->get()->toArray();
+
+    foreach ($cates as $cate) {
+        $arr = array_filter($cate);
+    }
+
+    return array_values($arr);
+}
 
     public function handleSku() {
         return Sku::where('goods_id', $this->id);
     }
+
 
     public function getTagPrice() {
         $price = 0;

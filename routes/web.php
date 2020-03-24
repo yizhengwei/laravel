@@ -23,10 +23,11 @@ Route::get('/', function () {
 
 Route::any('/category', 'View\CategoryController@toCategory');
 
-Route::post('/service/login', 'Service\LoginController@login');
+Route::any('/service/login', 'Service\LoginController@login');
 
 
-
+Route::get('excel/export','ExcelController@export');
+Route::get('excel/import','ExcelController@import');
 ////Route::get('category', 'View\CategoryController@toCategory');
 //Route::get('category', 'View\CategoryController@saveCategory');
 //Route::get('category', 'View\CategoryController@delCategory');
@@ -52,7 +53,13 @@ Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
     Route::any('/delSpec', 'CategoryController@delSpec');
     Route::any('/sortSpec', 'CategoryController@sortSpec');
     Route::any('/getGoodsList', 'GoodsController@getGoodsList');
-    Route::any('/test', 'GoodsController@test');
+    Route::any('/saveGoods', 'GoodsController@saveGoods');
     Route::any('/onSale', 'GoodsController@onSale');
+    Route::any('/getBrandList', 'GoodsController@getBrandList');
+
+    Route::any('/getRoleList', 'PowerController@getRoleList');
+
+    Route::any('/editView', 'GoodsController@editView');
+
 
 });

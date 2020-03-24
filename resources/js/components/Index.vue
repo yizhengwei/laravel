@@ -5,6 +5,8 @@
            <div>
                <img src="../../image/school.png">
                <span>后台商城管理系统</span>
+
+               <el-button type="text" @click="logout">退出登录</el-button>
            </div>
 
         </el-header>
@@ -61,7 +63,6 @@
         methods: {
             async getMenuList() {
                 const {data: res} = await this.$http.post('/getMenuList')
-                // console.log(res);
                 if (res.status != 1) return this.$message.error(res.msg);
                 this.menulist = res.content;
             },
@@ -69,6 +70,11 @@
             //点击菜单按钮的展开和收缩实现
             toggleCollapse() {
                 this.isCollapse = !this.isCollapse;
+            },
+
+            logout() {
+                window.sessionStorage.clear();
+                this.$router.push('/login');
             }
         }
     }
@@ -96,6 +102,15 @@
 
     .el-header span{
         margin-left:360px;
+        color:#0d1e5b;
+
+
+    }
+
+    .el-header .el-button{
+        float: right;
+        line-height: 30px;
+        vertical-align: middle;
         color:#0d1e5b;
     }
 

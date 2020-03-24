@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Service;
 
 use App\Models\Admin;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -17,24 +18,28 @@ class AdminController extends Controller
         $limit = $request->input('limit', "10");
         $offset = ($p - 1) * $limit;
 
-        $sql = "SELECT * FROM `admin` WHERE operation_id = '1'";
+        $sql = "SELECT * FROM `admin` a WHERE operation_id = '1'";
 
-        $total = count( DB::select($sql));
 
         if ($q) {
             $sql .= " AND username  like '%{$q}%'";
 
         }
 
-        $sql .= " limit {$limit} offset {$offset}";
+        $sql_count = "SELECT count(*) as num FROM ({$sql}) a ";
 
-        $arr['total'] = $total;
+        $sql = "SELECT a.*, b.name FROM ({$sql}) a LEFT JOIN `role` b ON a.role_id = b.id  ORDER BY a.id limit {$limit} offset {$offset}";
+
+        $a = DB::select($sql_count);
+        $a = json_encode($a, true);
+        $a = json_decode($a,true);
+
+
+        $arr['total'] = $a[0]['num'];
         $arr['list'] = DB::select($sql);
 
-
-        $role =$request->session()->get('role','');
-
-        $arr['role'] = $role;
+        $a = new Role();
+        $arr['role'] = $a->getRoleList();
 
         return $this->build_return_json(1, $arr, 'success');
 
@@ -61,21 +66,13 @@ class AdminController extends Controller
 
     }
 
-    //获取用户信息
-    public function getAdminInfo(Request $request) {
-        $id = $request->input('id');
-        $data = Admin::where('operation_id', 1)->where('id', $id)->first();
-        if (empty($data)) return $this->build_return_json(0, [], '无此用户');
-        return $this->build_return_json(1, $data, 'success');
-
-    }
-
     //新增&编辑
     public function addAdmin(Request $request) {
         $username = $request->input('username');
         $password = $request->input('password');
         $mobile   = $request->input('mobile');
         $email    = $request->input('email');
+        $role_id  = $request->input('role_id');
         $id       = $request->input('id');
 
 
@@ -87,13 +84,14 @@ class AdminController extends Controller
             if (empty($data)) return $this->build_return_json(0, [], '数据错误');
             $data->email = $email;
             $data->mobile = $mobile;
+            $data->role_id = $role_id;
             $data->update();
         } else {
             if (mb_strlen($username) > 10 || mb_strlen($username) < 5) return $this->build_return_json(0, [], '用户名为5～10个字符');
             if (!$username || !$password || !$mobile || !$email) return $this->build_return_json(0,[], "请填写必要参数");
             $data = Admin::where('operation_id', 1)->where('username', $username)->first();
             if (empty($data)) {
-                $admin = DB::insert('INSERT INTO `admin`(username, password, email, mobile) VALUES ( ?, ? , ? , ?)',[$username, $password, $email, $mobile]);
+                $admin = DB::insert('INSERT INTO `admin`(username, password, email, mobile, role_id) VALUES ( ?, ? , ? , ?, ?)',[$username, $password, $email, $mobile, $role_id]);
             } else{
                 return $this->build_return_json(0, [], '用户名已存在');
             }

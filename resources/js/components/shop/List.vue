@@ -11,19 +11,19 @@
 
             <div class="twentyEightWrap">
                 <!-- 品牌 -->
-<!--                <div class="item">-->
-<!--                    <span>品牌：</span>-->
-<!--                    <div class="select_wrap">-->
-<!--                        <el-select v-model="brand" placeholder="请选择" clearable>-->
-<!--                            <el-option-->
-<!--                                v-for="item in brandOptions"-->
-<!--                                :key="item.id"-->
-<!--                                :label="item.name"-->
-<!--                                :value="item.id">-->
-<!--                            </el-option>-->
-<!--                        </el-select>-->
-<!--                    </div>-->
-<!--                </div>-->
+                <div class="item">
+                    <span>品牌：</span>
+                    <div class="select_wrap">
+                        <el-select v-model="brand" placeholder="请选择" clearable size="mini">
+                            <el-option
+                                v-for="item in brandList"
+                                :key="item.id"
+                                :label="item.brand_name"
+                                :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </div>
+                </div>
                 <!-- 分类： -->
                 <div class="item" style="margin-bottom: 16px;">
                     <span>分类：</span>
@@ -56,7 +56,7 @@
                 <div class="item">
                     <span>商品编码或款名：</span>
                     <div class="select_wrap select_wrap2" style="margin-left:-4px;width: 130px;">
-                        <el-input size="mini" placeholder="请输入编码或款名" v-model.trim="goods_no"></el-input>
+                        <el-input size="mini" placeholder="请输入编码或款名" v-model.trim="goods_no" clearable></el-input>
                     </div>
                 </div>
 
@@ -64,7 +64,13 @@
                     <div class="sousuo comBtns" @click="searchData">搜 索</div>
                     <div class="chongzhi comBtns" @click="resetData">重 置</div>
                 </div>
+
+                <div class="twentyEightWrap">
+                    <div class="manyBtn manyBtn2" @click="toCreate('')">新增中台商品</div>
+                </div>
             </div>
+
+            <div></div>
 
             <el-table
                 ref="multipleTable"
@@ -90,7 +96,7 @@
                             </div>
                             <div class="right_content">
                                 <div class="top_title">
-                                    <a :href="'/#/edit'" v-if="scope.row.goods_name!=''">{{scope.row.goods_name}}</a>
+                                    <a :href="'/#/edit?id='+scope.row.id" v-if="scope.row.goods_name!=''">{{scope.row.goods_name}}</a>
                                     <span v-if="scope.row.goods_name==''">暂无</span>
                                 </div>
                                 <div class="code_1">
@@ -113,17 +119,8 @@
                     prop="avg_tag"
                     label="平均吊牌价(元)"
                     width="120">
+                </el-table-column>
 
-                </el-table-column>
-                <el-table-column
-                    label="上架状态"
-                    width="200"
-                    prop="status">
-                    <template v-slot="scope">
-                        <el-switch v-model="scope.row.status"  active-value="1" inactive-value="0" @change="toShelf(scope.row.status,scope.row)">
-                        </el-switch>
-                    </template>
-                </el-table-column>
                 <el-table-column
                     sortable
                     :default-sort="'ascending'"
@@ -149,7 +146,7 @@
                             type="text"
                             size="mini"
                         >
-                            <span style="color:#1890FF" @click="toCreate(scope.row, 'Y')">编辑</span>
+                            <span style="color:#1890FF" @click="toCreate(scope.row.id)">编辑</span>
                         </el-button>
 
                         <el-button
@@ -197,8 +194,11 @@
     export default {
         data() {
             return {
-
+                value: 1,
                 //分类ids
+                brand: '',
+                brandList: [],
+
                 cate_ids: '',
                 categoryList: [],
 
@@ -211,21 +211,30 @@
 
                 goods_no: '',    //输入的商品编码或商品名称
 
+                //分类
                 params: {
+                    p: 1,
+                    limit: 10,
 
                 },
                 total: 0,
 
-                value: "1",
 
                 tableData: [],
-
                 multipleSelection: []
             }
         },
 
         methods: {
 
+            async getBrandList() {
+                const {data: res} =  await this.$http.post('/getBrandList');
+                if(res.status != 1) return this.$message.error(res.msg);
+                this.brandList = res.content;
+
+            },
+
+            //获取分类
             async getCategoryList() {
                 const {data: res} =  await this.$http.post('/getCategoryList');
                 if(res.status != 1) return this.$message.error(res.msg);
@@ -233,36 +242,45 @@
 
             },
 
-            async searchData() {
+            //查询数据
+            searchData() {
                 var that=this;
                 that.getData()
             },
 
+            //获取商城列列表数据
             async getData() {
                 var that=this;
                 var form = {};
 
+                form.brand = that.brand;
                 form.cate_id  = that.cate_ids;
                 form.goods_no = that.goods_no;
                 form.list_img = that.listMap;
+                form.p = that.params.p;
+                form.limit = that.params.limit;
+
+                console.log(form);
 
                 const {data: res} =  await this.$http.post('/getGoodsList',form);
                 if(res.status != 1) return this.$message.error(res.msg);
                 this.tableData = res.content.list;
                 this.total = res.content.total;
-                // this.categoryList = res.content;
                 console.log(this.tableData);
             },
 
+            //重置查询数据
             resetData() {
                 var that =this;
+                that.brand = '';
                 that.goods_no = '';
+                that.cate_ids = '';
                 that.listMap = '';
                 that.searchData();
             },
 
+            //上下架商品
             async toShelf(val,coding){
-                var that=this;
                 var form={};
                 form.status=val;
                 form.goods_no = coding.goods_no;
@@ -272,33 +290,50 @@
                     coding.status = !coding.status;
                     return this.$message.error(res.msg);
                 }
-                // that.getData();
+                this.getData();
                 return this.$message.success(res.msg);
 
             },
 
+            delGoods() {
+
+            },
+
+            //分页
             handleSizeChange(newSize) {
                 this.params.limit = newSize
-                this.getAdminList()
+                this.getData()
             },
             handleCurrentChange(newPage) {
                 this.params.p = newPage
-                this.getAdminList()
+                this.getData()
             },
-            // toggleSelection(rows) {
-            //     if (rows) {
-            //         rows.forEach(row => {
-            //             this.$refs.multipleTable.toggleRowSelection(row);
-            //         });
-            //     } else {
-            //         this.$refs.multipleTable.clearSelection();
-            //     }
-            // },
+
+            //用户返回被选中的内容;
             handleSelectionChange(val) {
                 this.multipleSelection = val;
-            }
+                console.log( this.multipleSelection);
+            },
+
+            //去往编辑页面
+            toCreate(val){
+                if(val!=''){
+                    // console.log(val)
+                    // window.location.href="#/edit?id="+val;
+                    this.$router.push({
+                        path: '/edit',
+                        query: {
+                            id: val
+                        }
+                    })
+                }else{
+                    window.location.href="#/edit";
+                }
+            },
         },
+
         mounted() {
+            this.getBrandList();
             this.getCategoryList();
             this.getData();
         },
@@ -321,17 +356,6 @@
         float:right;
 
     }
-
-
-    /*.sousuo{*/
-    /*    margin-left: 0;*/
-    /*}*/
-
-    /*.twentyEightWrap .chongzhi{*/
-    /*    background: #fff;*/
-    /*    color:rgba(0, 0, 0, 0.65);*/
-    /*    border: 1px solid #D9D9D9;*/
-    /*}*/
 
     .comBtns{
          display: inline-block;
@@ -403,14 +427,16 @@
         padding-right:15px;
         margin-bottom: 8px;
     }
-    .right_content .top_title a{
+     .top_title a{
         width:100%;
         -webkit-box-orient:vertical;
         -webkit-line-clamp:2;
         height:34px;
         overflow:hidden;
         text-overflow:ellipsis;
+        text-decoration:none;
     }
+
     .code_1{
         color: rgba(0, 0, 0, 0.65);
         width:100%;
@@ -419,6 +445,30 @@
         margin-bottom: 14px;
         font-size: 12px;
     }
+    .twentyEightWrap .manyBtn{
+        min-width:80px;
+        height:28px;
+        border-radius:4px;
+        border:1px solid rgba(211,220,230,1);
+        display: inline-block;
+        vertical-align: top;
+        magin-left: 20px;
+        font-weight: 400;
+        color:#FD9026;
+        line-height: 28px;
+        box-sizing: border-box;
+        padding:0 16px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .twentyEightWrap .manyBtn2{
+        background:linear-gradient(134deg,rgba(211,220,230,1) 0%,rgba(179,192,209,1) 100%);
+        color: #fff;
+        float: right;
+        margin-bottom:10px;
+    }
+
 
 
 </style>

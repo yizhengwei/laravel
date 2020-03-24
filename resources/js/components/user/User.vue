@@ -10,46 +10,71 @@
         <el-card>
             <el-row :gutter="20">
                 <el-col :span="6">
-                    <el-input placeholder="请输入内容" v-model="params.q" clearable @clear="getAdminList">
-                        <el-button slot="append" icon="el-icon-search" @click="getAdminList"></el-button>
+                    <el-input placeholder="请输入内容" v-model="params.q" clearable @clear="getAdminList" size="mini">
+                        <el-button slot="append" icon="el-icon-search" @click="getAdminList" ></el-button>
                     </el-input>
                 </el-col>
 
                 <el-col :span="4">
-                    <el-button type="primary" @click="addAdmin = true">添加用户</el-button>
+                    <el-button
+                        type="primary"
+                        @click="showAdminDig(addFrom, 'N')"
+                        size="mini"
+                        :disabled="role_id == 0 ? false : true"
+                    >添加用户
+                    </el-button>
                 </el-col>
 
             </el-row>
+
+
 
             <el-table
                 :data="adminList"
                 border
                 stripe
                 style="width: 100%">
-                <el-table-column prop="id" label="#" width="180"></el-table-column>
+                <el-table-column prop="id" label="#" width="80"></el-table-column>
                 <el-table-column prop="username" label="用户名"  width="180"></el-table-column>
+                <el-table-column prop="name" label="角色"  width="180"></el-table-column>
                 <el-table-column prop="mobile" label="手机号码"  width="180"></el-table-column>
                 <el-table-column prop="email" label="邮箱"  width="180"></el-table-column>
 
                 <el-table-column prop="status" label="状态" width="100">
                     <template v-slot="scope">
-                        <el-switch v-model="scope.row.status"  active-value="1" inactive-value="0" @change="changeStatus(scope.row)">
+                        <el-switch
+                            v-model="scope.row.status"
+                            active-value="1"
+                            inactive-value="0"
+                            @change="changeStatus(scope.row)"
+                            :disabled="role_id == 1 ? false : true"
+                            >
                         </el-switch>
                     </template>
                 </el-table-column>
 
-                <el-table-column label="操作" v-slot="scope">
-                    <template>
+                <el-table-column label="操作">
+                    <template v-slot="scope">
                         <el-button
                             type="text"
                             size="mini"
+                            v-if="role_id == 1"
                         >
-                            <span style="color:#1890FF" @click="showAdminInfo(scope.row.id)">编辑</span>
+                            <span style="color:#1890FF" @click="showAdminDig(scope.row, 'Y')">编辑</span>
+<!--                            <span style="color:#1890FF" @click="showAdminInfo(scope.row.id)">编辑</span>-->
                         </el-button>
                         <el-button
                             type="text"
                             size="mini"
-                           >
+                            v-if="role_id == 1"
+                        >
+                            <span style="color:#1890FF">分配权限</span>
+                        </el-button>
+                        <el-button
+                            type="text"
+                            size="mini"
+                            v-if="role_id == 1"
+                        >
                             <span style="color:red" @click="delAdmin(scope.row.id)">删除</span>
                         </el-button>
                     </template>
@@ -76,11 +101,11 @@
            >
             <el-form :model="addFrom" :rules="addFromRules" ref="addFromRef" label-width="90px">
                 <el-form-item label="用户名" prop="username">
-                    <el-input v-model="addFrom.username"></el-input>
+                    <el-input v-model="addFrom.username" :disabled="isEdit"></el-input>
                 </el-form-item>
 
                 <el-form-item label="密码" prop="password">
-                    <el-input v-model="addFrom.password"></el-input>
+                    <el-input v-model="addFrom.password" ></el-input>
                 </el-form-item>
 
                 <el-form-item label="邮箱" prop="email">
@@ -90,6 +115,17 @@
                 <el-form-item label="手机号码" prop="mobile">
                     <el-input v-model="addFrom.mobile"></el-input>
                 </el-form-item>
+
+                <el-form-item label="角色" >
+                    <el-select v-model="addFrom.role_id" placeholder="请选择">
+                        <el-option
+                            v-for="item in roleList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
             </el-form>
 
             <span slot="footer" class="dialog-footer">
@@ -98,33 +134,6 @@
             </span>
         </el-dialog>
 
-<!--        编辑用户-->
-        <el-dialog
-            title="编辑用户"
-            :visible.sync="editAdmin"
-            width="30%"
-            show-close
-        >
-            <el-form :model="editFrom" :rules="editFromRules" ref="editFromRef" label-width="90px" v-slot="scope">
-                <el-form-item label="用户名" prop="username">
-                    <el-input v-model="editFrom.username" disabled></el-input>
-                </el-form-item>
-
-
-                <el-form-item label="邮箱" prop="email">
-                    <el-input v-model="editFrom.email"></el-input>
-                </el-form-item>
-
-                <el-form-item label="手机号码" prop="mobile">
-                    <el-input v-model="editFrom.mobile"></el-input>
-                </el-form-item>
-            </el-form>
-
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="editAdmin = false">取 消</el-button>
-                <el-button type="primary" @click="edit()">确 定</el-button>
-            </span>
-        </el-dialog>
     </div>
 </template>
 
@@ -147,6 +156,10 @@
             };
 
             return {
+                role_id: '', //权限id
+
+                isEdit: false,
+
                 params: {
                     q: '',
                     p: 1,
@@ -155,16 +168,16 @@
                 },
                 value: "100",
                 adminList: [],
+                roleList: [],
                 total: 0,
                 addAdmin: false,
-                editAdmin: false,
-                editFrom: {},
                 //双向绑定input输入框
                 addFrom: {
                     username: '',
                     password: '',
                     email: '',
                     mobile: '',
+                    role_id: '',
                 },
 
                 status: '',
@@ -186,14 +199,6 @@
                     ]
                 },
 
-                editFromRules: {
-                    email: [
-                        { required: true, validator: checkEmail, trigger: 'blur' }
-                    ],
-                    mobile: [
-                        { required: true, validator: checkMobile, trigger: 'blur' }
-                    ]
-                },
             }
         },
         created() {
@@ -202,11 +207,25 @@
         methods: {
             //获取用户列表
             async getAdminList() {
+                var that = this;
                 const {data: res} = await this.$http.get('/getAdminList',{params: this.params})
-                console.log(res);
                 if (res.status != 1) return this.$message.error(res.msg);
-                this.adminList = res.content.list;
-                this.total = res.content.total;
+                that.adminList = res.content.list;
+                that.total = res.content.total;
+                that.roleList = res.content.role;
+                that.role_id = window.sessionStorage.getItem('role_id');
+                console.log(that.role_id);
+            },
+
+            showAdminDig(row, isUserEdit) {
+                let that = this;
+                console.log(row)
+                this.addAdmin = true;
+
+                if(isUserEdit == 'Y') {
+                    this.addFrom =JSON.parse(JSON.stringify(row));
+                    that.isEdit = true;
+                }
             },
 
             //分页
@@ -237,6 +256,7 @@
             },
             //新增用户
             add() {
+                console.log(this.addFrom)
                 this.$refs.addFromRef.validate(async valid=> {
                     if (!valid) return
                     const {data: res} = await this.$http.post('/addAdmin', this.addFrom);
@@ -290,6 +310,5 @@
 </script>
 
 <style scoped>
-
 
 </style>

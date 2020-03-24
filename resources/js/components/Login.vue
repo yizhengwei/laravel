@@ -64,6 +64,7 @@
                         const {data: res} = await this.$http.post('/login', this.loginForm);
                         if(res.status != 1) return this.$message.error(res.msg);
                         this.$message.success(res.msg);
+                        window.sessionStorage.setItem('role_id', res.content.role_id);
                         this.$router.push('/index');
 
                     });

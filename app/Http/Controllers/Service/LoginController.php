@@ -16,15 +16,16 @@ class LoginController extends Controller
 
         if (empty($username) || empty($password)) return $this->build_return_json(0, [], "请填写必填项");
 
-        $data = Admin::where('username', $username)->first();
+        $data = Admin::where('operation_id', 1)->where('username', $username)->first();
         if ($data == null) {
             return $this->build_return_json(0, [], "该用户不存在");
         } else {
             if ($password != $data->password) return $this->build_return_json(0, [],'密码错误');
         }
-        $request->session()->put('role', $data->role);
 
-        return $this->build_return_json(1, [], "登录成功");
+        $list = Admin::where('operation_id', 1)->where('username', $username)->first();
+
+        return $this->build_return_json(1, $list, "欢迎".$username."登录成功");
 
     }
 }

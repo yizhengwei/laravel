@@ -17,7 +17,8 @@ body,
 }
 .el-pagination{
     margin-top: 15px;
-    margin-left: 725px;
+    margin-bottom: 15px;
+    float: right;
 }
 
 .el-row {
