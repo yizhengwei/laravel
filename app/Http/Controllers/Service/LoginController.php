@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Service;
 
 use App\Models\Admin;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -24,8 +25,9 @@ class LoginController extends Controller
         }
 
         $list = Admin::where('operation_id', 1)->where('username', $username)->first();
+        $role = Role::where('operation_id', 1)->where('id', $list->role_id)->first()->name;
 
-        return $this->build_return_json(1, $list, "欢迎".$username."登录成功");
+        return $this->build_return_json(1, $list, "欢迎".$role."登录成功");
 
     }
 }

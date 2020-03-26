@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Service;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Goods;
+use App\Models\Sku;
+use App\Models\Spec;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,7 @@ class GoodsController extends Controller
 
     public function editView(Request $request) {
         $id = $request->input('id');
+        if (!$id) return $this->build_return_json(0, [], 'success');
         $goods = Goods::where('operation_id', 1)->where('id', $id)->first();
         $data = [];
         if ($goods->count()) {
@@ -31,7 +34,7 @@ class GoodsController extends Controller
                 'goods_name' => $goods->goods_name,
                 'cate_id' => $goods->getCateId(),
                 'brand_id' => $goods->brand_id == 0 ? '' : $goods->brand_id,
-//                'sku_list' => $goods->getSkuList(),
+                'sku_list' => $goods->getSkuList(),
                 'list_img' => $goods->list_img,
                 'content' => htmlspecialchars_decode($goods->content) ?? '',
                 'status' => $goods->status,
@@ -50,9 +53,11 @@ class GoodsController extends Controller
         $brand_id = $request->input('brand_id');
         $content = $request->input('content');
         $status = $request->input('status');
+        $skuList = $request->input('skuList');
 
-//        if ((preg_match("/^[\x{4e00}-\x{9fa5}]+$/u", $goods_no))) return $this->build_return_json(0, [], '商品编码不能为中文');
-        if (!$goods_no || !$goods_name) return $this->build_return_json(0, [], '请填写必填项');
+
+        if ((preg_match("/^[\x{4e00}-\x{9fa5}]+$/u", $goods_no))) return $this->build_return_json(0, [], '商品编码不能为中文');
+//        if (!$goods_no || !$goods_name || !$skuList) return $this->build_return_json(0, [], '请填写必填项');
 
         $goods_by_no = Goods::where('operation_id', 1)->where('goods_no', $goods_no)->first();
 
@@ -90,6 +95,38 @@ class GoodsController extends Controller
 
             }
 
+            $goods->save();
+
+            foreach($skuList as $sku) {
+
+                $sku_by_no = Sku::where('operation_id', 1)->where('sku_no', $sku['sku_no'])->first();
+
+                if ($sku_by_no) return $this->build_return_json(0, [], 'sku编码已存在');
+
+                $goods_sku = new Sku();
+
+                $goods_sku->operation_id = 1;
+                $goods_sku->goods_id = $goods->id;
+                $goods_sku->goods_no = $goods->goods_no;
+                $goods_sku->sku_no = $sku['sku_no'];
+                $goods_sku->tag_price = $sku['tag_price'];
+                $goods_sku->sales_price = $sku['sales_price'];
+                $goods_sku->stock = $sku['stock'];
+
+
+                $specList = [
+                    'spec_id' => $sku['spec_id'],
+                    'spec_name' => $sku['spec_name'],
+                    'spec_val_id' => $sku['spec_val_id'],
+                    'spec_val_name' => $sku['spec_val_name'],
+                ];
+
+                $goods_sku->spec_list = json_encode($specList);
+                $goods_sku->save();
+            }
+
+            $a = $goods->updateGoodsStock();
+            $goods->stock = $a;
             $goods->save();
 
         }
@@ -197,6 +234,19 @@ class GoodsController extends Controller
         return $this->build_return_json(1, [], 'success');
     }
 
-
+    public function getGoodsSpec(Request $request) {
+        $goodsSpecs = $request->input('goodsSpec');
+        foreach ($goodsSpecs as $goodsSpec) {
+            $spec_name = Spec::where('operation_id', 1)->where('id', $goodsSpec[0])->first()->name;
+            $spec_val_name = Spec::where('operation_id', 1)->where('id', $goodsSpec[1])->first()->name;
+            $data[] = [
+                'spec_id' => $goodsSpec[0],
+                'spec_name' => $spec_name,
+                'spec_val_id' => $goodsSpec[1],
+                'spec_val_name' => $spec_val_name,
+            ];
+        }
+        return $this->build_return_json(1, $data, 'success');
+    }
 
 }

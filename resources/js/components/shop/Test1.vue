@@ -51,7 +51,7 @@
 
                 <!-- 规格信息·设置 -->
                 <div class="mt24">
-                    <h4>规格信息/价格 设置</h4>
+                    <h6>规格信息/价格 设置</h6>
                     <div class="row-start-top mt16">
                         <p class="form-label">商品规格：</p>
                         <el-cascader
@@ -91,8 +91,8 @@
 
                             <!-- sku编码 -->
                             <td>
-                                <div class="input-xs" >
-                                    <el-input clearable size="mini" v-model="item.sku_no" ></el-input>
+                                <div class="input-xs">
+                                    <el-input clearable size="mini" v-model="item.sku_no"></el-input>
                                 </div>
                             </td>
                             <!-- 吊牌价 -->
@@ -104,7 +104,7 @@
                             <!-- 销售价 -->
                             <td>
                                 <div class="input-xs">
-                                    <el-input-number  controls-position="right" clearable size="mini" :min='0' :precision="2" v-model="item.sales_price"></el-input-number>
+                                    <el-input-number  controls-position="right" clearable size="mini" :min='0' :precision="2" v-model="item.sale_price"></el-input-number>
                                 </div>
                             </td>
                             <!-- 库存 -->
@@ -279,7 +279,6 @@
                     status: good.status,
                 }
                 that.cates = good.cate_id;
-                that.skuList = good.sku_list;
             },
 
             pickGoodsImg() {},
@@ -293,7 +292,7 @@
             async confirm() {
                 var that =this;
                 var goods = that.goods;
-                goods.skuList = that.skuList;
+                goods.sku_list = that.skuList;
                 const {data: res} =  await this.$http.post('/saveGoods', goods);
                 if(res.status != 1) return this.$message.error(res.msg);
                 this.cateList = res.content;
@@ -334,7 +333,6 @@
             this.getCategoryList();
             this.getBrandList();
             this.getSpecList();
-            this.getGoodsData();
         },
     }
 </script>
@@ -396,52 +394,4 @@
         height: 178px;
         display: block;
     }
-    .table {
-        width: 100%;
-        max-width: 100%;
-        margin-bottom: 1rem;
-        background-color: transparent;
-        font-size: 1px;
-    }
-
-    .table th,
-    .table td {
-        padding: 0.9375rem;
-        vertical-align: top;
-        border-top: 1px solid #ebedf2;
-    }
-
-    .table thead th {
-        vertical-align: bottom;
-        border-bottom: 2px solid #ebedf2;
-    }
-
-    .table tbody + tbody {
-        border-top: 2px solid #ebedf2;
-    }
-
-    .table .table {
-        background-color: #fff;
-    }
-    .table-bordered {
-        border: 1px solid #ebedf2;
-    }
-
-    .table-bordered th,
-    .table-bordered td {
-        border: 1px solid #ebedf2;
-        text-align: center;
-
-    }
-
-    .table-bordered thead th,
-    .table-bordered thead td {
-        border-bottom-width: 1px;
-    }
-    table {
-        border-collapse: collapse;
-    }
-
-
-
 </style>

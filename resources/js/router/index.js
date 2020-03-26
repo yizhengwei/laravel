@@ -8,9 +8,9 @@ import User from "../components/user/User";
 
 import Category from "../components/shop/Category";
 import List from "../components/shop/List";
-import Test from "../components/Test";
 import Create from "../components/shop/Create";
 import Role from "../components/power/Role";
+import Test1 from "../components/shop/Test1";
 
 //
 Vue.use(VueRouter);
@@ -35,9 +35,9 @@ const router =  new VueRouter({
                 {path: '/user', component: User},
                 {path: '/list',component: List},
                 {path: '/category',component: Category},
-                {path: '/test', component: Test},
                 {path: '/edit', component: Create},
-                {path: '/role', component: Role}
+                {path: '/role', component: Role},
+                {path: '/test', component: Test1}
                 ],
         }
 

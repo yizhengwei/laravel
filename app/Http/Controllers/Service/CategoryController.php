@@ -29,38 +29,65 @@ class CategoryController extends Controller
         }
     }
 
-    public function getCategoryList() {
-
-        $oneCates = Category::where('operation_id', 1)
-            ->where('pid', 0)
-            ->orderBy('rank', 'ASC')
-            ->get()
-            ->toArray();
+    public function getCategoryList(Request $request) {
+        $type = $request->input('type');
         $data = [];
-        if (sizeof($oneCates) != 0){
-            foreach ($oneCates as $index => $oneCate) {
-                $data[$index] = $oneCate;
-                $secondCates = Category::where('operation_id', 1)
-                    ->where('pid', $oneCate['id'])
+        switch ($type) {
+            case 2:
+                $cate_list = Category::where('operation_id', 1)
+                    ->where('pid', 0)
                     ->orderBy('rank', 'ASC')
                     ->get()
                     ->toArray();
-                $data[$index]['list'] = [];
-
-                if (sizeof($secondCates) != 0){
-                    foreach ($secondCates as  $secondCate) {
-                        $tmp = $secondCate;
-                        $tmp['list'] = Category::where('operation_id', 1)
-                            ->where('pid', $secondCate['id'])
+                if (count($cate_list) > 0) {
+                    foreach ($cate_list as $index => $value) {
+                        $data[$index] = $value;
+                        $data[$index]['list'] = Category::where('operation_id', 1)
+                            ->where('pid', $value['id'])
                             ->orderBy('rank', 'ASC')
                             ->get()
                             ->toArray();
-                        $data[$index]['list'][] = $tmp;
-
                     }
                 }
-            }
+                break;
+
+            default:
+
+                $oneCates = Category::where('operation_id', 1)
+                    ->where('pid', 0)
+                    ->orderBy('rank', 'ASC')
+                    ->get()
+                    ->toArray();
+                $data = [];
+                if (sizeof($oneCates) != 0){
+                    foreach ($oneCates as $index => $oneCate) {
+                        $data[$index] = $oneCate;
+                        $secondCates = Category::where('operation_id', 1)
+                            ->where('pid', $oneCate['id'])
+                            ->orderBy('rank', 'ASC')
+                            ->get()
+                            ->toArray();
+                        $data[$index]['list'] = [];
+
+                        if (sizeof($secondCates) != 0){
+                            foreach ($secondCates as  $secondCate) {
+                                $tmp = $secondCate;
+                                $tmp['list'] = Category::where('operation_id', 1)
+                                    ->where('pid', $secondCate['id'])
+                                    ->orderBy('rank', 'ASC')
+                                    ->get()
+                                    ->toArray();
+                                $data[$index]['list'][] = $tmp;
+
+                            }
+                        }
+                    }
+                }
+
+                break;
         }
+
+
         return $this->build_return_json(1, $data, 'success');
     }
 
@@ -252,6 +279,7 @@ class CategoryController extends Controller
         return $this->build_return_json(1, [], '操作成功');
 
     }
+
 
 }
 

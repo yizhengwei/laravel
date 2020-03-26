@@ -60,6 +60,6 @@ Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
     Route::any('/getRoleList', 'PowerController@getRoleList');
 
     Route::any('/editView', 'GoodsController@editView');
-
+    Route::any('/getGoodsSpec', 'GoodsController@getGoodsSpec');
 
 });

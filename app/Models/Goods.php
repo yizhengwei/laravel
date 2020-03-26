@@ -68,4 +68,36 @@ class Goods extends Model
 
     }
 
+    public function updateGoodsStock() {
+
+        $stock = $this->handleSku()->select('stock')->get()->sum('stock');
+//
+        return $stock;
+    }
+
+    public function getSkuList() {
+        $list = [];
+        $sku_list = $this->handleSku()
+            ->select('id', 'operation_id', 'goods_id', 'sku_no', 'tag_price', 'sales_price', 'spec_list', 'stock')
+            ->get()->toArray();
+        if (count($sku_list) > 0) {
+            foreach ($sku_list as $index => $sku) {
+                $specList = json_decode($sku['spec_list'], true);
+                $list[$index] = [
+                    'id' => $sku['id'],
+                    'sku_no' => $sku['sku_no'],
+                    'tag_price' => $sku['tag_price'],
+                    'sales_price' => $sku['sales_price'],
+                    'spec_id' => $specList['spec_id'],
+                    'spec_name' => $specList['spec_name'],
+                    'spec_val_id' => $specList['spec_val_id'],
+                    'spec_val_name' => $specList['spec_val_name'],
+                    'stock' => $sku['stock'],
+
+                ];
+            }
+        }
+        return $list;
+    }
+
 }

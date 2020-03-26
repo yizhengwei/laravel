@@ -23,7 +23,7 @@ import router from './router/index'; //导入router对象
 
 import axios from 'axios';
 
-import '../css/global.css'
+import '../css/global.css';
 
 Vue.prototype.$http = axios;
 

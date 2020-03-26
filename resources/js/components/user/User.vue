@@ -20,7 +20,7 @@
                         type="primary"
                         @click="showAdminDig(addFrom, 'N')"
                         size="mini"
-                        :disabled="role_id == 0 ? false : true"
+                        :disabled="role_id == 1 ? false : true"
                     >添加用户
                     </el-button>
                 </el-col>

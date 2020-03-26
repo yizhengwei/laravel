@@ -153,7 +153,23 @@
                 <el-form-item label="分类名" prop="name" size="mini">
                     <el-input v-model="newCate.name" ></el-input>
                 </el-form-item>
+                <el-form-item label="父级分类"  size="mini">
+                        <el-cascader
+                            clearable
+                            change-on-select
+                            v-model="newCate.pid"
+                            :options="parentCateList"
+                            :props="{value: 'id', label:'name', children:'list',checkStrictly: true}"
+                            @change="handleChange"
+                        >
+
+                        </el-cascader>
+
+
+                </el-form-item>
             </el-form>
+
+
 
             <div slot="footer" class="dialog-footer">
                 <el-button @click="showAddCate = false">取 消</el-button>
@@ -195,7 +211,7 @@
 
                 //分类列表
                 categoryList: [],
-
+                parentCateList: [],
 
                 //弹出框绑定数据
                 newCate: {
@@ -257,6 +273,13 @@
                 })
                 that.categoryList = list;
                 console.log(that.categoryList);
+            },
+
+            async getParentCateList() {
+                const {data: res} =  await this.$http.post('/getCategoryList', {type: 2});
+                if(res.status != 1) return this.$message.error(res.msg);
+                this.parentCateList = res.content;
+                console.log(this.parentCateList);
             },
 
 
@@ -388,17 +411,30 @@
                 this.getSpecList();
             },
 
+            handleChange() {
+                if(this.newCate.pid.length > 0) {
+                    this.newCate.pid = this.newCate.pid[this.newCate.pid.length-1];
+                }
+
+                if(this.newCate.pid.length == 0) {
+                    this.newCate.pid = 0
+                }
+                console.log(this.newCate.pid );
+            }
+
         },
         mounted() {
             this.getCategoryList();
             this.getSpecList();
-
+            this.getParentCateList();
         }
     };
 </script>
 
 <style scoped>
-
+    .el-cascader{
+        width: 100%
+    }
 </style>
 
 
