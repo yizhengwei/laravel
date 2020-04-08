@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Auth extends Model
+class Member extends Model
 {
     //
-    protected $table = 'auth';
+    protected $table = 'member';
     protected $primaryKey = 'id';
     public $timestamps = false;
+
 }

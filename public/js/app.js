@@ -64946,16 +64946,42 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      dialogImageUrl: '',
+      dialogVisible: false,
       brandList: [],
-      //品牌列表
+      //品牌列表，
       cateList: [],
       //分类列表
       specList: [],
       specValList: [],
       skuList: [],
+      bannerList: [],
       isShowSpecDialog: false,
       goodsSpec: [],
       goods: {
@@ -64965,9 +64991,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         brand_id: '',
         cate_id: '',
         list_img: '',
-        // list_img_url: '',
         content: '',
-        status: ''
+        status: '',
+        isShow: ''
       },
       cates: [],
       specDialog: [[]],
@@ -64976,36 +65002,60 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   },
   computed: {},
   methods: {
+    handleAvatarSuccess1: function handleAvatarSuccess1(res, file) {
+      this.bannerList.push(res);
+      console.log(this.bannerList);
+    },
+    handleAvatarSuccess: function handleAvatarSuccess(res, file) {
+      console.log(res); // this.goods.list_img = URL.createObjectURL(file.raw);
+
+      this.goods.list_img = res;
+    },
+    beforeAvatarUpload: function beforeAvatarUpload(file) {
+      var isJPG = file.type === 'image/jpeg';
+      var isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!');
+      }
+
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+
+      return isJPG && isLt2M;
+    },
     getCategoryList: function getCategoryList() {
       var _this = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
-        var _ref, res;
+        var that, _ref, res;
 
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.next = 2;
+                that = _this;
+                _context.next = 3;
                 return _this.$http.post('/getCategoryList', {
                   type: 3
                 });
 
-              case 2:
+              case 3:
                 _ref = _context.sent;
                 res = _ref.data;
 
                 if (!(res.status != 1)) {
-                  _context.next = 6;
+                  _context.next = 7;
                   break;
                 }
 
                 return _context.abrupt("return", _this.$message.error(res.msg));
 
-              case 6:
-                _this.cateList = res.content;
-
               case 7:
+                that.cateList = res.content;
+
+              case 8:
               case "end":
                 return _context.stop();
             }
@@ -65017,29 +65067,29 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this2 = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee2() {
-        var _ref2, res;
+        var that, _ref2, res;
 
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _context2.next = 2;
+                that = _this2;
+                _context2.next = 3;
                 return _this2.$http.post('/getSpecList');
 
-              case 2:
+              case 3:
                 _ref2 = _context2.sent;
                 res = _ref2.data;
 
                 if (!(res.status != 1)) {
-                  _context2.next = 6;
+                  _context2.next = 7;
                   break;
                 }
 
                 return _context2.abrupt("return", _this2.$message.error(res.msg));
 
-              case 6:
-                _this2.specList = res.content;
-                console.log(_this2.specList);
+              case 7:
+                that.specList = res.content;
 
               case 8:
               case "end":
@@ -65167,15 +65217,19 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                 that.goods = {
                   id: good.id,
                   goods_no: good.goods_no,
-                  goods_name: good.goods_no,
+                  goods_name: good.goods_name,
                   brand_id: good.brand_id,
                   content: good.content,
-                  status: good.status
+                  status: good.status,
+                  list_img: good.list_img,
+                  isShow: good.isShow
                 };
+                that.bannerList = good.img_list;
+                console.log(that.bannerList);
                 that.cates = good.cate_id;
                 that.skuList = good.sku_list;
 
-              case 14:
+              case 16:
               case "end":
                 return _context5.stop();
             }
@@ -65201,22 +65255,24 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               case 0:
                 that = _this6;
                 goods = that.goods;
+                goods.id = _this6.$route.query.id;
                 goods.skuList = that.skuList;
-                _context6.next = 5;
+                goods.bannerList = that.bannerList;
+                _context6.next = 7;
                 return _this6.$http.post('/saveGoods', goods);
 
-              case 5:
+              case 7:
                 _ref6 = _context6.sent;
                 res = _ref6.data;
 
                 if (!(res.status != 1)) {
-                  _context6.next = 9;
+                  _context6.next = 11;
                   break;
                 }
 
                 return _context6.abrupt("return", _this6.$message.error(res.msg));
 
-              case 9:
+              case 11:
                 _this6.cateList = res.content;
                 that.$message({
                   type: 'success',
@@ -65227,7 +65283,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                   }
                 });
 
-              case 11:
+              case 13:
               case "end":
                 return _context6.stop();
             }
@@ -65684,7 +65740,65 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }, _callee4);
       }))();
     },
-    delGoods: function delGoods() {},
+    delGoods: function delGoods(val) {
+      var _this5 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee5() {
+        var confirmResult, _ref5, res;
+
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return _this5.$confirm('是否删除该商品?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                })["catch"](function (res) {
+                  return res;
+                });
+
+              case 2:
+                confirmResult = _context5.sent;
+
+                if (!(confirmResult != 'confirm')) {
+                  _context5.next = 5;
+                  break;
+                }
+
+                return _context5.abrupt("return", _this5.$message.info('取消删除'));
+
+              case 5:
+                _context5.next = 7;
+                return _this5.$http.post('/delGoods', {
+                  id: val.id
+                });
+
+              case 7:
+                _ref5 = _context5.sent;
+                res = _ref5.data;
+
+                if (!(res.status != 1)) {
+                  _context5.next = 11;
+                  break;
+                }
+
+                return _context5.abrupt("return", _this5.$message.error(res.msg));
+
+              case 11:
+                _this5.$message.success(res.msg);
+
+                _this5.getData();
+
+              case 13:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5);
+      }))();
+    },
     //分页
     handleSizeChange: function handleSizeChange(newSize) {
       this.params.limit = newSize;
@@ -105353,12 +105467,76 @@ var render = function() {
           _c("div", { staticClass: "mt24" }, [
             _c("h4", [_vm._v("商品展示设置")]),
             _vm._v(" "),
-            _c("div", { staticClass: "row-start mt16" }, [
-              _c("p", { staticClass: "form-label mr8" }, [
-                _c("span", { staticClass: "red" }, [_vm._v("*")]),
-                _vm._v("商品列表图：")
-              ])
-            ]),
+            _c(
+              "div",
+              { staticClass: "row-start mt16" },
+              [
+                _c("p", { staticClass: "form-label mr8" }, [
+                  _c("span", { staticClass: "red" }, [_vm._v("*")]),
+                  _vm._v("商品列表图：")
+                ]),
+                _vm._v(" "),
+                _c(
+                  "el-upload",
+                  {
+                    staticClass: "avatar-uploader",
+                    attrs: {
+                      action: "/upload",
+                      "show-file-list": false,
+                      "on-success": _vm.handleAvatarSuccess,
+                      "before-upload": _vm.beforeAvatarUpload
+                    }
+                  },
+                  [
+                    _vm.goods.list_img
+                      ? _c("img", {
+                          staticClass: "avatar",
+                          attrs: { src: _vm.goods.list_img }
+                        })
+                      : _c("i", {
+                          staticClass: "el-icon-plus avatar-uploader-icon"
+                        })
+                  ]
+                )
+              ],
+              1
+            ),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "row-start mt16" },
+              [
+                _c("p", { staticClass: "form-label mr8" }, [
+                  _c("span", { staticClass: "red" }, [_vm._v("*")]),
+                  _vm._v("商品轮播图：")
+                ]),
+                _vm._v(" "),
+                _vm._l(_vm.bannerList, function(item) {
+                  return _vm.bannerList
+                    ? [
+                        _c("img", {
+                          staticClass: "avatar",
+                          attrs: { src: item }
+                        })
+                      ]
+                    : _vm._e()
+                }),
+                _vm._v(" "),
+                _c(
+                  "el-upload",
+                  {
+                    attrs: {
+                      limit: 3,
+                      action: "/upload",
+                      "list-type": "picture-card",
+                      "on-success": _vm.handleAvatarSuccess1
+                    }
+                  },
+                  [_c("i", { staticClass: "el-icon-plus" })]
+                )
+              ],
+              2
+            ),
             _vm._v(" "),
             _c(
               "div",
@@ -105421,7 +105599,44 @@ var render = function() {
                   )
                 ],
                 1
-              )
+              ),
+              _vm._v(" "),
+              _vm.goods.status == 1
+                ? _c(
+                    "div",
+                    { staticClass: "row-start mt16" },
+                    [
+                      _c("p", { staticClass: "form-label mr8 w100" }, [
+                        _c("span", { staticClass: "red" }, [_vm._v("*")]),
+                        _vm._v("是否首页展示：")
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "el-radio-group",
+                        {
+                          model: {
+                            value: _vm.goods.isShow,
+                            callback: function($$v) {
+                              _vm.$set(_vm.goods, "isShow", $$v)
+                            },
+                            expression: "goods.isShow"
+                          }
+                        },
+                        [
+                          _c("el-radio", { attrs: { label: 1 } }, [
+                            _vm._v("是")
+                          ]),
+                          _vm._v(" "),
+                          _c("el-radio", { attrs: { label: 0 } }, [
+                            _vm._v("否")
+                          ])
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                : _vm._e()
             ]),
             _vm._v(" "),
             _c(
@@ -105685,7 +105900,7 @@ var render = function() {
                     }
                   }
                 },
-                [_vm._v("新增中台商品")]
+                [_vm._v("新增商品")]
               )
             ])
           ]),
@@ -105710,7 +105925,7 @@ var render = function() {
               }),
               _vm._v(" "),
               _c("el-table-column", {
-                attrs: { label: "商品(中台)" },
+                attrs: { label: "商品" },
                 scopedSlots: _vm._u([
                   {
                     key: "default",

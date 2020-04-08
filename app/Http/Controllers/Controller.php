@@ -15,5 +15,10 @@ class Controller extends BaseController
         return response()->json(array('status' => $status, 'content' => $content, 'msg' => $msg));
     }
 
+    public function toJson()
+    {
+        return json_encode($this, JSON_UNESCAPED_UNICODE);
+    }
+
 
 }

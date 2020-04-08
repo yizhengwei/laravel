@@ -66,7 +66,7 @@
                 </div>
 
                 <div class="twentyEightWrap">
-                    <div class="manyBtn manyBtn2" @click="toCreate('')">新增中台商品</div>
+                    <div class="manyBtn manyBtn2" @click="toCreate('')">新增商品</div>
                 </div>
             </div>
 
@@ -84,7 +84,7 @@
                     width="55">
                 </el-table-column>
                 <el-table-column
-                    label="商品(中台)">
+                    label="商品">
                     <template slot-scope="scope">
                         <div class="shangpi">
                             <div class="left_img">
@@ -295,7 +295,21 @@
 
             },
 
-            delGoods() {
+            async delGoods(val) {
+
+                const confirmResult = await this.$confirm('是否删除该商品?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).catch(res => res)
+
+                if(confirmResult != 'confirm') {
+                    return this.$message.info('取消删除');
+                }
+                const {data: res} =  await this.$http.post('/delGoods',{id: val.id});
+                if(res.status != 1) return this.$message.error(res.msg);
+                this.$message.success(res.msg);
+                this.getData();
 
             },
 

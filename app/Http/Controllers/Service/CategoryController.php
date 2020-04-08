@@ -87,7 +87,6 @@ class CategoryController extends Controller
                 break;
         }
 
-
         return $this->build_return_json(1, $data, 'success');
     }
 

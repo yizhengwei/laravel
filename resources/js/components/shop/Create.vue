@@ -85,14 +85,13 @@
                             :key="index">
 
                             <td>
-
                                 <span v-text="item.spec_name + item.spec_val_name"></span>
                             </td>
 
                             <!-- sku编码 -->
                             <td>
                                 <div class="input-xs" >
-                                    <el-input clearable size="mini" v-model="item.sku_no" ></el-input>
+                                    <el-input clearable size="mini" v-model="item.sku_no"  ></el-input>
                                 </div>
                             </td>
                             <!-- 吊牌价 -->
@@ -123,16 +122,35 @@
                     <h4>商品展示设置</h4>
                     <div class="row-start mt16">
                         <p class="form-label mr8"><span class="red">*</span>商品列表图：</p>
-                        <!--                        <el-upload-->
-                        <!--                            class="avatar-uploader"-->
-                        <!--                            action="aa"-->
-                        <!--                            :show-file-list="false"-->
-                        <!--                            :on-success="handleAvatarSuccess"-->
-                        <!--                            :before-upload="beforeAvatarUpload">-->
-                        <!--                            <img v-if="goods.list_img" :src="goods.list_img" class="avatar">-->
-                        <!--                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>-->
-                        <!--                        </el-upload>-->
+                        <el-upload
+                            class="avatar-uploader"
+                            action="/upload"
+                            :show-file-list="false"
+                            :on-success="handleAvatarSuccess"
+                            :before-upload="beforeAvatarUpload">
+                            <img v-if="goods.list_img" :src="goods.list_img" class="avatar">
+                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                        </el-upload>
                     </div>
+
+
+
+                    <div class="row-start mt16">
+                        <p class="form-label mr8"><span class="red">*</span>商品轮播图：</p>
+                        <template v-if="bannerList"  v-for="item in bannerList">
+                            <img  :src="item" class="avatar">
+                        </template>
+                        <el-upload
+                            :limit="3"
+                            action="/upload"
+                            list-type="picture-card"
+                            :on-success="handleAvatarSuccess1"
+                         >
+                            <i class="el-icon-plus"></i>
+                        </el-upload>
+
+                    </div>
+                    
 
                     <!-- 分享描述 -->
                     <div class="row-start input-small mt24">
@@ -157,6 +175,14 @@
                                 <el-radio :label="0">否</el-radio>
                             </el-radio-group>
                         </div>
+                        <div class="row-start mt16" v-if="goods.status == 1">
+                            <p class="form-label mr8 w100"><span class="red">*</span>是否首页展示：</p>
+                            <el-radio-group v-model="goods.isShow">
+
+                                <el-radio :label="1" >是</el-radio>
+                                <el-radio :label="0">否</el-radio>
+                            </el-radio-group>
+                        </div>
                     </div>
                     <!-- 按钮 -->
                     <div class="row-start mt24" style="padding-left: 80px;margin-top: 32px;">
@@ -166,9 +192,6 @@
                 </div>
             </div>
         </el-card>
-
-
-
 
     </div>
 
@@ -182,12 +205,17 @@
     export default {
         data() {
             return {
-                brandList:[], //品牌列表
+                dialogImageUrl: '',
+                dialogVisible: false,
+
+
+                brandList:[], //品牌列表，
                 cateList:[], //分类列表
                 specList:[],
                 specValList: [],
                 skuList:[],
 
+                bannerList: [],
 
                 isShowSpecDialog: false,
 
@@ -200,9 +228,9 @@
                     brand_id: '',
                     cate_id: '',
                     list_img:'',
-                    // list_img_url: '',
                     content: '',
                     status: '',
+                    isShow: '',
                 },
                 cates: [],
 
@@ -217,19 +245,44 @@
 
         methods: {
 
+            handleAvatarSuccess1(res, file) {
+                this.bannerList.push(res)
+                console.log(this.bannerList)
+            },
+
+            handleAvatarSuccess(res, file) {
+                console.log(res)
+                // this.goods.list_img = URL.createObjectURL(file.raw);
+                this.goods.list_img = res;
+
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            },
+
+
             async getCategoryList() {
+                var that =this;
                 const {data: res} =  await this.$http.post('/getCategoryList', {type: 3});
                 if(res.status != 1) return this.$message.error(res.msg);
-                this.cateList = res.content;
-
+                that.cateList = res.content;
 
             },
 
             async getSpecList () {
+                var that = this;
                 const {data: res} = await this.$http.post('/getSpecList');
                 if (res.status != 1) return this.$message.error(res.msg);
-                this.specList = res.content;
-                console.log(this.specList);
+                that.specList = res.content;
             },
 
             async getBrandList() {
@@ -245,7 +298,6 @@
                 this.skuList = res.content;
                 console.log(this.skuList)
             },
-
 
 
             handleChange() {
@@ -273,11 +325,15 @@
                 that.goods = {
                     id: good.id,
                     goods_no: good.goods_no,
-                    goods_name: good.goods_no,
+                    goods_name: good.goods_name,
                     brand_id: good.brand_id,
                     content: good.content,
                     status: good.status,
+                    list_img: good.list_img,
+                    isShow: good.isShow,
                 }
+                that.bannerList = good.img_list;
+                console.log(that.bannerList)
                 that.cates = good.cate_id;
                 that.skuList = good.sku_list;
             },
@@ -293,7 +349,9 @@
             async confirm() {
                 var that =this;
                 var goods = that.goods;
+                goods.id = this.$route.query.id;
                 goods.skuList = that.skuList;
+                goods.bannerList = that.bannerList;
                 const {data: res} =  await this.$http.post('/saveGoods', goods);
                 if(res.status != 1) return this.$message.error(res.msg);
                 this.cateList = res.content;

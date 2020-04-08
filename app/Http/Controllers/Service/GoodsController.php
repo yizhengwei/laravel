@@ -16,7 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 class GoodsController extends Controller
 {
-    //
+
+
+
+
     public function getBrandList() {
         $list = Brand::where('operation_id', 1)->select('id', 'brand_name')->get();
         return $this->build_return_json(1, $list, 'success');
@@ -38,6 +41,8 @@ class GoodsController extends Controller
                 'list_img' => $goods->list_img,
                 'content' => htmlspecialchars_decode($goods->content) ?? '',
                 'status' => $goods->status,
+                'isShow' => $goods->isShow,
+                'img_list' => json_decode($goods->img_list),
             ];
         }
         return $this->build_return_json(1, $data, 'success');
@@ -54,23 +59,42 @@ class GoodsController extends Controller
         $content = $request->input('content');
         $status = $request->input('status');
         $skuList = $request->input('skuList');
+        $list_img = $request->input('list_img');
+        $isShow = $request->input('isShow');
+        $bannerList = $request->input('bannerList');
 
 
         if ((preg_match("/^[\x{4e00}-\x{9fa5}]+$/u", $goods_no))) return $this->build_return_json(0, [], '商品编码不能为中文');
-//        if (!$goods_no || !$goods_name || !$skuList) return $this->build_return_json(0, [], '请填写必填项');
+        if (!$goods_no || !$goods_name || !$skuList) return $this->build_return_json(0, [], '请填写必填项');
 
         $goods_by_no = Goods::where('operation_id', 1)->where('goods_no', $goods_no)->first();
 
+        $flag = false;
+        foreach ($skuList as $sku) {
+            if ((preg_match("/^[\x{4e00}-\x{9fa5}]+$/u", $sku['sku_no']))) return $this->build_return_json(0, [], 'Sku编码不能为中文');
+            if (empty($sku['tag_price']) || empty($sku['sales_price'])) return $this->build_return_json(0 , [], '销售价或吊牌价不能为空');
+            $flag = true;
+        }
+        if (!$flag) return $this->build_return_json(0, [], '至少创建一条sku');
 
-        if ($id) {
+        DB::beginTransaction();
+        try{
+            if ($id) {
+                $goods = Goods::where('operation_id', 1)->where('id', $id)->first();
+                if (!$goods) return $this->build_return_json(0, [], '商品不存在');
+                if ($goods_by_no && $goods_by_no->id != $id) return $this->build_return_json(0, [], '款号已存在');
+            } else {
+                if ($goods_by_no)  return $this->build_return_json(0, [], '商品编码已存在');
+                $goods = new Goods();
+                $goods->operation_id = 1;
 
-        } else {
-            if ($goods_by_no)  return $this->build_return_json(0, [], '商品编码已存在');
-            $goods = new Goods();
-            $goods->operation_id = 1;
+            }
             $goods->brand_id = $brand_id;
             $goods->goods_no = $goods_no;
             $goods->goods_name = $goods_name;
+            $goods->list_img = $list_img;
+            $goods->isShow = $isShow;
+            $goods->img_list = json_encode($bannerList);
 
             if ($cate_id) {
                 $cate = Category::where('operation_id', 1)->where('id', $cate_id)->first();
@@ -93,26 +117,33 @@ class GoodsController extends Controller
                 }
                 $goods->status = $status;
 
+
             }
 
             $goods->save();
 
+            $hashSkus = Sku::where('operation_id', 1 )->where('goods_id', $goods->id)->get()->keyBy('sku_no');
+
             foreach($skuList as $sku) {
+                if (!trim($sku['sku_no'])) continue;
 
-                $sku_by_no = Sku::where('operation_id', 1)->where('sku_no', $sku['sku_no'])->first();
+                $goods_sku = $hashSkus[$sku['sku_no']] ?? null;
 
-                if ($sku_by_no) return $this->build_return_json(0, [], 'sku编码已存在');
 
-                $goods_sku = new Sku();
+                if (!$goods_sku) {
+                    $sku_by_no = Sku::where('operation_id', 1)->where('sku_no', $sku['sku_no'])->first();
+                    if ($sku_by_no) return $this->build_return_json(0, [], 'sku编码已存在');
+                    $goods_sku = new Sku();
+                    $goods_sku->operation_id = 1;
+                    $goods_sku->goods_id = $goods->id;
+                    $goods_sku->goods_no = $goods->goods_no;
+                    $goods_sku->sku_no = $sku['sku_no'];
 
-                $goods_sku->operation_id = 1;
-                $goods_sku->goods_id = $goods->id;
-                $goods_sku->goods_no = $goods->goods_no;
-                $goods_sku->sku_no = $sku['sku_no'];
+                }
+
                 $goods_sku->tag_price = $sku['tag_price'];
                 $goods_sku->sales_price = $sku['sales_price'];
                 $goods_sku->stock = $sku['stock'];
-
 
                 $specList = [
                     'spec_id' => $sku['spec_id'],
@@ -129,9 +160,12 @@ class GoodsController extends Controller
             $goods->stock = $a;
             $goods->save();
 
+            DB::commit();
+            return $this->build_return_json(1, [], '操作成功');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->build_return_json(0, [], $e->getMessage());
         }
-
-        return $this->build_return_json(1, [], '操作成功');
     }
 
     public function getGoodsList(Request $request) {
@@ -184,7 +218,7 @@ class GoodsController extends Controller
             $sql .= " AND (goods_name like '%{$goods_no}%' or goods_no like '%{$goods_no}%') ";
         }
 
-        $sql .= " limit {$limit} offset {$offset}";
+        $sql .= " ORDER BY id DESC limit {$limit} offset {$offset}";
 
         $list = DB::select($sql);
         $list = json_encode($list, true);
@@ -247,6 +281,24 @@ class GoodsController extends Controller
             ];
         }
         return $this->build_return_json(1, $data, 'success');
+    }
+
+    public function delGoods(Request $request) {
+        $id = $request->input('id');
+        $goods = Goods::where('operation_id', 1)->where('id', $id)->first();
+        $skus = Sku::where('operation_id', 1)->where('goods_id', $id)->get();
+        if ($goods) {
+            $goods->operation_id = 0;
+            $goods->update();
+        }
+        if (count($skus) > 0) {
+            foreach ($skus as $sku ) {
+                $sku->goods_id = 0;
+                $sku->operation_id = 0;
+                $sku->update();
+            }
+        }
+        return $this->build_return_json(1, [], '删除成功');
     }
 
 }

@@ -116,7 +116,7 @@
                     <el-input v-model="addFrom.mobile"></el-input>
                 </el-form-item>
 
-                <el-form-item label="角色" >
+                <el-form-item label="角色">
                     <el-select v-model="addFrom.role_id" placeholder="请选择">
                         <el-option
                             v-for="item in roleList"

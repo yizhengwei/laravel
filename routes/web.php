@@ -17,23 +17,31 @@ Route::get('/', function () {
     return view('login');
 });
 
+Route::get('/test', function () {
+    return view('test');
+});
+
 //Route::get('/index', function () {
 //    return view('index');
 //});
 
 Route::any('/category', 'View\CategoryController@toCategory');
-
 Route::any('/service/login', 'Service\LoginController@login');
-
-
+Route::any('/upload', 'TestController@upload');
 Route::get('excel/export','ExcelController@export');
 Route::get('excel/import','ExcelController@import');
-////Route::get('category', 'View\CategoryController@toCategory');
-//Route::get('category', 'View\CategoryController@saveCategory');
-//Route::get('category', 'View\CategoryController@delCategory');
+
 
 Route::group(['namespace' => 'V1', 'prefix' => 'v1'], function () {
-    Route::any('/login', 'wxLoginController@test');
+    Route::any('/login', 'wxLoginController@login');
+    Route::any('/save', 'wxLoginController@save');
+    Route::any('/userLogin', 'wxLoginController@userLogin');
+    Route::any('/sendSMS', 'ValidateController@sendSMS');
+    Route::any('/register', 'ValidateController@register');
+    Route::any('/getGoodsList', 'GoodsController@getGoodsList');
+    Route::any('/detail', 'GoodsController@detail');
+    Route::any('/oneCate', 'CategoryController@getFirstCate');
+    Route::any('/twoCate', 'CategoryController@getSecondCate');
 });
 
 Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
@@ -56,10 +64,9 @@ Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
     Route::any('/saveGoods', 'GoodsController@saveGoods');
     Route::any('/onSale', 'GoodsController@onSale');
     Route::any('/getBrandList', 'GoodsController@getBrandList');
-
     Route::any('/getRoleList', 'PowerController@getRoleList');
-
     Route::any('/editView', 'GoodsController@editView');
     Route::any('/getGoodsSpec', 'GoodsController@getGoodsSpec');
+    Route::any('/delGoods', 'GoodsController@delGoods');
 
 });
