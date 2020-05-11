@@ -21,6 +21,7 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         //
         '/upload',//上传的action
+        'uploadExcel',
 
     ];
 }

@@ -6,6 +6,8 @@ use App\Tool\SMS\SendTemplateSMS;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TestController extends Controller
 {
@@ -70,4 +72,44 @@ class TestController extends Controller
 //
 //        return $m3_result->toJson();
     }
+
+
+    public function export()
+    {
+        return Excel::download(new UsersExport, 'users.xlsx');
+    }
+
+
+    public function uploadExcel(Request $request)
+    {
+        if ($request->hasFile('file') and $request->file('file')->isValid()) {
+            //数据验证
+//            $allow = array('xlsx', 'csv', 'xls');
+//
+//            $mine = $request->file('file')->getMimeType();
+//            if (!in_array($mine, $allow)) {
+//                return response()->json(['status' => 0, 'msg' => '文件类型错误，只能上传excel']);
+//            }
+
+            //文件大小判断$filePath
+            $max_size = 1024 * 1024 * 3;
+            $size = $request->file('file')->getClientSize();
+            if ($size > $max_size) {
+                return response()->json(['status' => 0, 'msg' => '文件大小不能超过3M']);
+            }
+
+            //original图片,上传到本地
+            $path = $request->file->store('/excel');
+
+
+            $file_path = public_path() . $path;
+
+            return $path;
+
+
+        }
+    }
+
+
+
 }

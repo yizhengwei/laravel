@@ -9,15 +9,31 @@ use App\Http\Controllers\Controller;
 class CategoryController extends Controller
 {
     //
-    public function getFirstCate() {
-        $fisrtCate = Category::where('operation_id', 1)->where('pid', 0)->get();
-        return $this->build_return_json(1, $fisrtCate, 'success');
+
+
+    public function getCategoryList() {
+        $cate_list = Category::where('operation_id', 1)
+            ->where('pid', 0)
+            ->select('id', 'name', 'pid')
+            ->orderBy('rank', 'ASC')
+            ->get()
+            ->toArray();
+        $data = [];
+        if (count($cate_list) > 0) {
+            foreach ($cate_list as $index => $value) {
+                $data[$index] = $value;
+                $data[$index]['list'] = Category::where('operation_id', 1)
+                    ->where('pid', $value['id'])
+                    ->select('id', 'name', 'pid', 'list_img')
+                    ->orderBy('rank', 'ASC')
+                    ->get()
+                    ->toArray();
+            }
+        }
+
+        return $this->build_return_json(1, $data, 'success');
     }
 
-    public function getSecondCate(Request $request) {
-        $pid = $request->input('pid');
-        $secondCate = Category::where('operation_id', 1)->where('pid', $pid)->get();
-        return $this->build_return_json(1, $secondCate, 'success');
 
-    }
+
 }

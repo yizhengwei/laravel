@@ -12,6 +12,7 @@ class MenuController extends Controller
 
     public function getMenuList() {
 
+
         $arr = [];
         $firstMenu = Menu::where('pid', 0)->orderBy('rank','ASC')->get()->toArray();
         if (!empty($firstMenu)) {

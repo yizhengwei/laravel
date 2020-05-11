@@ -94,6 +94,7 @@ class CategoryController extends Controller
     public function saveCategory(Request $request) {
         $id = $request->input('id');
         $name = $request->input('name');
+        $list_img = $request->input('list_img');
 
         if (!$name || mb_strlen($name) > 10) return $this->build_return_json(0, [], '分类名称不能为空或长度不能多于10个字符');
 
@@ -107,7 +108,7 @@ class CategoryController extends Controller
             }
         } else {
             $pid = $request->input('pid');
-            $cate_by_name = Category::where('name', $name)->where('pid', $pid)->first();
+            $cate_by_name = Category::where('operation_id', 1)->where('name', $name)->where('pid', $pid)->first();
             if ($cate_by_name) return $this->build_return_json(0, [], '同一分类下名字不能重复');
             $cate = new Category();
 
@@ -116,6 +117,7 @@ class CategoryController extends Controller
         $cate->level =  Category::getLevel($pid);
         $cate->name = $name;
         $cate->operation_id = "1";
+        $cate->list_img = $list_img;
         $cate->save();
 
         if (!$cate->rank){

@@ -65,11 +65,22 @@
                     <div class="chongzhi comBtns" @click="resetData">重 置</div>
                 </div>
 
-                <div class="twentyEightWrap">
-                    <div class="manyBtn manyBtn2" @click="toCreate('')">新增商品</div>
-                </div>
-            </div>
 
+            </div>
+            <div class="twentyEightWrap">
+                <div class="manyBtn manyBtn2" @click="toCreate('')">新增商品</div>
+                <button class="manyBtn manyBtn2" style="float:left; margin-left:50px;"  @click="del()">批量删除</button>
+<!--                <button  class="manyBtn manyBtn2" style="float:left; margin-left:100px;"  @click="inp()">批量导入</button>-->
+                <el-upload
+                    style="float:left; margin-left:100px;"
+                    action="uploadExcel"
+                    multiple
+                    :limit="1"
+                    :on-success="handleAvatarSuccess"
+                >
+                    <el-button size="small" type="primary">文件导入</el-button>
+                </el-upload>
+            </div>
             <div></div>
 
             <el-table
@@ -194,10 +205,14 @@
     export default {
         data() {
             return {
+                url: '',
+
                 value: 1,
                 //分类ids
                 brand: '',
                 brandList: [],
+
+                c: [],
 
                 cate_ids: '',
                 categoryList: [],
@@ -219,7 +234,7 @@
                 },
                 total: 0,
 
-
+                tableD: [],
                 tableData: [],
                 multipleSelection: []
             }
@@ -227,11 +242,23 @@
 
         methods: {
 
+            handleAvatarSuccess(res, file) {
+                this.url = res;
+                console.log(this.url);
+            },
+
+            aa(){
+                if(this.url != '') {
+                    console.log(this.url);
+                }
+            },
+
+
+            //获取品牌列表
             async getBrandList() {
                 const {data: res} =  await this.$http.post('/getBrandList');
                 if(res.status != 1) return this.$message.error(res.msg);
                 this.brandList = res.content;
-
             },
 
             //获取分类
@@ -295,6 +322,29 @@
 
             },
 
+
+            //批量删除
+            async del() {
+                this.a=[];
+                this.a=this.tableD.map(function(item){
+                    return item.goods_no;
+                })
+
+                const {data: res} =  await this.$http.post('/delete',{goods_nos: this.a});
+                if(res.status != 1) {
+                    return this.$message.error(res.msg);
+                }
+                this.getData();
+                return this.$message.success(res.msg);
+
+
+            },
+
+            //批量导入
+            inp(){
+                console.log('aaa');
+            },
+
             async delGoods(val) {
 
                 const confirmResult = await this.$confirm('是否删除该商品?', '提示', {
@@ -323,10 +373,24 @@
                 this.getData()
             },
 
+            toggleSelection(rows) {
+                if (rows) {
+                    rows.forEach(row => {
+                        this.$refs.multipleTable.toggleRowSelection(row);
+                    });
+                } else {
+                    this.$refs.multipleTable.clearSelection();
+                }
+            },
+
+
             //用户返回被选中的内容;
             handleSelectionChange(val) {
-                this.multipleSelection = val;
-                console.log( this.multipleSelection);
+                console.log(val);
+                this.multipleSelection =val;
+                this.tableD = val;
+                // this.multipleSelection = val;
+                // console.log( this.multipleSelection);
             },
 
             //去往编辑页面
@@ -350,139 +414,140 @@
             this.getBrandList();
             this.getCategoryList();
             this.getData();
+            this.aa();
         },
 
     }
 </script>
-<style scoped>
+<!--<style scoped>-->
 
-    .item{
-        display:inline-block;
-        margin-left:10px;
-    }
+<!--    .item{-->
+<!--        display:inline-block;-->
+<!--        margin-left:10px;-->
+<!--    }-->
 
-    .item span{
-        font-size: 12px;
-    }
+<!--    .item span{-->
+<!--        font-size: 12px;-->
+<!--    }-->
 
-    .select_wrap{
-        width:140px;
-        float:right;
+<!--    .select_wrap{-->
+<!--        width:140px;-->
+<!--        float:right;-->
 
-    }
+<!--    }-->
 
-    .comBtns{
-         display: inline-block;
-         width:64px;
-         height:28px;
-         line-height: 28px;
-         text-align: center;
-         font-size: 12px;
-         margin-right:8px;
-         cursor: pointer;
-         border-radius: 4px;
-     }
-    .twentyEightWrap .sousuo{
-        color:#fff;
-        background:linear-gradient(134deg,rgba(211,220,230,1) 0%,rgba(179,192,209,1) 100%);
-    }
+<!--    .comBtns{-->
+<!--         display: inline-block;-->
+<!--         width:64px;-->
+<!--         height:28px;-->
+<!--         line-height: 28px;-->
+<!--         text-align: center;-->
+<!--         font-size: 12px;-->
+<!--         margin-right:8px;-->
+<!--         cursor: pointer;-->
+<!--         border-radius: 4px;-->
+<!--     }-->
+<!--    .twentyEightWrap .sousuo{-->
+<!--        color:#fff;-->
+<!--        background:linear-gradient(134deg,rgba(211,220,230,1) 0%,rgba(179,192,209,1) 100%);-->
+<!--    }-->
 
-    .twentyEightWrap .chongzhi{
-        color:rgba(0, 0, 0, .65);
-        border:1px solid rgba(217, 217, 217, 1);
-    }
-
-
-
-    .shangpi{
-        width:100%;
-        height:80px;
-    }
-
-    .el-table thead{
-        color:rgba(0, 0, 0, 0.65);
-        font-size: 12px;
-    }
-    .el-table{
-        color:rgba(0, 0, 0, 0.65);
-        font-size: 12px;
-        text-align:center;
-    }
-
-    .shangpi .left_img{
-        display: inline-block;
-        width:80px;
-        height: 80px;
-        overflow: hidden;  /*超出内容不可见*/
-        vertical-align: top;
-        margin-right: 8px;
-    }
-    .left_img img{
-        width:80px;
-    }
-
-    .shangpi .right_content{
-        display: inline-flex;
-        width:calc(100% - 94px);
-        height: 80px;
-        vertical-align: top;
-        flex-direction: column;
-        justify-content: space-around;
-        align-items: center;
-    }
-    .right_content .top_title{
-        line-height: 16px;
-        width:100%;
-        height: 32px;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        box-sizing: border-box;
-        padding-right:15px;
-        margin-bottom: 8px;
-    }
-     .top_title a{
-        width:100%;
-        -webkit-box-orient:vertical;
-        -webkit-line-clamp:2;
-        height:34px;
-        overflow:hidden;
-        text-overflow:ellipsis;
-        text-decoration:none;
-    }
-
-    .code_1{
-        color: rgba(0, 0, 0, 0.65);
-        width:100%;
-        height:12px;
-        line-height: 12px;
-        margin-bottom: 14px;
-        font-size: 12px;
-    }
-    .twentyEightWrap .manyBtn{
-        min-width:80px;
-        height:28px;
-        border-radius:4px;
-        border:1px solid rgba(211,220,230,1);
-        display: inline-block;
-        vertical-align: top;
-        magin-left: 20px;
-        font-weight: 400;
-        color:#FD9026;
-        line-height: 28px;
-        box-sizing: border-box;
-        padding:0 16px;
-        text-align: center;
-        cursor: pointer;
-    }
-
-    .twentyEightWrap .manyBtn2{
-        background:linear-gradient(134deg,rgba(211,220,230,1) 0%,rgba(179,192,209,1) 100%);
-        color: #fff;
-        float: right;
-        margin-bottom:10px;
-    }
+<!--    .twentyEightWrap .chongzhi{-->
+<!--        color:rgba(0, 0, 0, .65);-->
+<!--        border:1px solid rgba(217, 217, 217, 1);-->
+<!--    }-->
 
 
 
-</style>
+<!--    .shangpi{-->
+<!--        width:100%;-->
+<!--        height:80px;-->
+<!--    }-->
+
+<!--    .el-table thead{-->
+<!--        color:rgba(0, 0, 0, 0.65);-->
+<!--        font-size: 12px;-->
+<!--    }-->
+<!--    .el-table{-->
+<!--        color:rgba(0, 0, 0, 0.65);-->
+<!--        font-size: 12px;-->
+<!--        text-align:center;-->
+<!--    }-->
+
+<!--    .shangpi .left_img{-->
+<!--        display: inline-block;-->
+<!--        width:80px;-->
+<!--        height: 80px;-->
+<!--        overflow: hidden;  /*超出内容不可见*/-->
+<!--        vertical-align: top;-->
+<!--        margin-right: 8px;-->
+<!--    }-->
+<!--    .left_img img{-->
+<!--        width:80px;-->
+<!--    }-->
+
+<!--    .shangpi .right_content{-->
+<!--        display: inline-flex;-->
+<!--        width:calc(100% - 94px);-->
+<!--        height: 80px;-->
+<!--        vertical-align: top;-->
+<!--        flex-direction: column;-->
+<!--        justify-content: space-around;-->
+<!--        align-items: center;-->
+<!--    }-->
+<!--    .right_content .top_title{-->
+<!--        line-height: 16px;-->
+<!--        width:100%;-->
+<!--        height: 32px;-->
+<!--        display: flex;-->
+<!--        justify-content: flex-start;-->
+<!--        align-items: center;-->
+<!--        box-sizing: border-box;-->
+<!--        padding-right:15px;-->
+<!--        margin-bottom: 8px;-->
+<!--    }-->
+<!--     .top_title a{-->
+<!--        width:100%;-->
+<!--        -webkit-box-orient:vertical;-->
+<!--        -webkit-line-clamp:2;-->
+<!--        height:34px;-->
+<!--        overflow:hidden;-->
+<!--        text-overflow:ellipsis;-->
+<!--        text-decoration:none;-->
+<!--    }-->
+
+<!--    .code_1{-->
+<!--        color: rgba(0, 0, 0, 0.65);-->
+<!--        width:100%;-->
+<!--        height:12px;-->
+<!--        line-height: 12px;-->
+<!--        margin-bottom: 14px;-->
+<!--        font-size: 12px;-->
+<!--    }-->
+<!--    .twentyEightWrap .manyBtn{-->
+<!--        min-width:80px;-->
+<!--        height:28px;-->
+<!--        border-radius:4px;-->
+<!--        border:1px solid rgba(211,220,230,1);-->
+<!--        display: inline-block;-->
+<!--        vertical-align: top;-->
+<!--        magin-left: 20px;-->
+<!--        font-weight: 400;-->
+<!--        color:#FD9026;-->
+<!--        line-height: 28px;-->
+<!--        box-sizing: border-box;-->
+<!--        padding:0 16px;-->
+<!--        text-align: center;-->
+<!--        cursor: pointer;-->
+<!--    }-->
+
+<!--    .twentyEightWrap .manyBtn2{-->
+<!--        background:linear-gradient(134deg,rgba(211,220,230,1) 0%,rgba(179,192,209,1) 100%);-->
+<!--        color: #fff;-->
+<!--        float: right;-->
+<!--        margin-bottom:10px;-->
+<!--    }-->
+
+
+
+<!--</style>-->

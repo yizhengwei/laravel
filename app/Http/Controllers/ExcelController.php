@@ -28,10 +28,12 @@ class ExcelController extends Controller
     }
 
     public function import(){
-        $filePath = 'storage/exports/'.iconv('UTF-8', 'GBK', 'aaa').'.csv';
+        $filePath = 'storage/exports/'.iconv('UTF-8', 'GBK', 'eee').'.csv';
         Excel::load($filePath, function($reader) {
-            $data = $reader->all();
-            dd($data);
+
+            $data = $reader->all()->toArray();
+           
         });
     }
+
 }

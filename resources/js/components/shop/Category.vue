@@ -28,6 +28,7 @@
                         :header-row-style="{color:'#000000', fontSize: '12px', background:'#f3f3f3'}">
                         <el-table-column label="分类" align="left">
                             <template slot-scope="scope">
+                                <img class="cell-img" :style="{marginLeft: scope.row.list ? '0': '23px' }" :src="scope.row.list_img" v-if="scope.row.level==2&&scope.row.list_img!=''">
                                 <span>{{scope.row.name}}</span>
                             </template>
                         </el-table-column>
@@ -167,6 +168,18 @@
 
 
                 </el-form-item>
+                <el-form-item label="分类图标" size="mini" v-if="newCate.pid!=0">
+
+                    <el-upload
+                        class="avatar-uploader"
+                        action="/upload"
+                        :show-file-list="false"
+                        :on-success="handleAvatarSuccess"
+                        :before-upload="beforeAvatarUpload">
+                        <img v-if="newCate.list_img" :src="newCate.list_img" class="avatar">
+                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                    </el-upload>
+                </el-form-item>
             </el-form>
 
 
@@ -218,6 +231,7 @@
                     id: '',
                     pid:'',
                     name:'',
+                    list_img: '',
                 },
                 showAddCate: false,
                 addCateFromRules: {
@@ -247,6 +261,25 @@
             };
         },
         methods: {
+            handleAvatarSuccess(res, file) {
+                console.log(res)
+                // this.goods.list_img = URL.createObjectURL(file.raw);
+                this.newCate.list_img = res;
+
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            },
+
             //获取分类列表
             async getCategoryList() {
                 var that = this;
@@ -434,6 +467,24 @@
 <style scoped>
     .el-cascader{
         width: 100%
+    }
+
+    .row-start{
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    img{
+        width: 80px;
+        height: 80px;
+    }
+
+    .cell-img{
+        width: 30px;
+        height: 30px;
+        margin-right: 10px;
     }
 </style>
 

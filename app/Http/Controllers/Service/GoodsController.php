@@ -301,4 +301,45 @@ class GoodsController extends Controller
         return $this->build_return_json(1, [], '删除成功');
     }
 
+    //批量删除
+    public function delete(Request $request){
+        $goods_nos = $request->input("goods_nos");
+        if (empty($goods_nos)) return $this->build_return_json(0, [], '请选择删除商品');
+
+        foreach ($goods_nos as $goods_no) {
+            $goods = Goods::where('operation_id', 1)->where('goods_no', $goods_no)->first();
+
+            if ($goods === null) continue;
+
+            //删除sku表的内容
+            $skus = Sku::where('operation_id', 1)->where('goods_id', $goods->id)->get();
+            if (count($skus) > 0 ) {
+                foreach ($skus as $sku) {
+                    $sku->operation_id = 0;
+                    $sku->goods_id = 0;
+                    $sku->update();
+                }
+            }
+
+            //删除goods表的内容
+            $goods->operation_id = 0;
+            $goods->save();
+
+        }
+        return $this->build_return_json(1, [], '批量删除成功');
+    }
+
+    public function curve() {
+        $cates = Category::where('operation_id', 1)->where('pid', 0)->get();
+        $data = [];
+        foreach ($cates as $cate) {
+            $data['x'][]= $cate->name;
+            $goods = Goods::where('operation_id', 1)->where('class_first', $cate->id)->count();
+            $data['value'][] = $goods;
+        }
+
+        return  $this->build_return_json(1, $data, 'success');
+
+    }
+
 }

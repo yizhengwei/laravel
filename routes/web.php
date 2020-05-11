@@ -21,15 +21,16 @@ Route::get('/test', function () {
     return view('test');
 });
 
-//Route::get('/index', function () {
-//    return view('index');
-//});
 
 Route::any('/category', 'View\CategoryController@toCategory');
 Route::any('/service/login', 'Service\LoginController@login');
 Route::any('/upload', 'TestController@upload');
+Route::any('/uploadExcel', 'TestController@uploadExcel');
 Route::get('excel/export','ExcelController@export');
+Route::get('text','ExcelController@text');
 Route::get('excel/import','ExcelController@import');
+
+Route::any('/export', 'TestController@export');
 
 
 Route::group(['namespace' => 'V1', 'prefix' => 'v1'], function () {
@@ -40,8 +41,14 @@ Route::group(['namespace' => 'V1', 'prefix' => 'v1'], function () {
     Route::any('/register', 'ValidateController@register');
     Route::any('/getGoodsList', 'GoodsController@getGoodsList');
     Route::any('/detail', 'GoodsController@detail');
-    Route::any('/oneCate', 'CategoryController@getFirstCate');
-    Route::any('/twoCate', 'CategoryController@getSecondCate');
+    Route::any('/getCategoryList', 'CategoryController@getCategoryList');
+    Route::any('/cateGoods', 'GoodsController@cateGoods');
+    Route::any('/shopCart', 'GoodsController@shopCart');
+    Route::any('/getCartList', 'GoodsController@getCartList');
+    Route::any('/updateCount', 'GoodsController@updateCount');
+    Route::any('/delCart', 'GoodsController@delCart');
+    Route::any('/saveOrder', 'GoodsController@saveOrder');
+
 });
 
 Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
@@ -68,5 +75,11 @@ Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
     Route::any('/editView', 'GoodsController@editView');
     Route::any('/getGoodsSpec', 'GoodsController@getGoodsSpec');
     Route::any('/delGoods', 'GoodsController@delGoods');
+    Route::any('/getOrderList', 'OrderController@getOrderList');
+    Route::any('/delete', 'GoodsController@delete');
+//    Route::any('/curve', 'OrderController@curve');
+    Route::any('/curve', 'GoodsController@curve');
+    Route::any('/getMemberList', 'MemberController@getMemberList');
+
 
 });

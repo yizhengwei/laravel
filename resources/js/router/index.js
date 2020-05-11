@@ -11,6 +11,9 @@ import List from "../components/shop/List";
 import Create from "../components/shop/Create";
 import Role from "../components/power/Role";
 import Test1 from "../components/shop/Test1";
+import Order from "../components/order/Order";
+import Member from "../components/member/Member";
+import Detail from "../components/order/Detail";
 
 //
 Vue.use(VueRouter);
@@ -26,6 +29,7 @@ const router =  new VueRouter({
             component: Login
         },
 
+
         {
             path: '/index',
             component: Index,
@@ -37,7 +41,10 @@ const router =  new VueRouter({
                 {path: '/category',component: Category},
                 {path: '/edit', component: Create},
                 {path: '/role', component: Role},
-                {path: '/test', component: Test1}
+                {path: '/test', component: Test1},
+                {path: '/order', component: Order},
+                {path: '/member', component: Member},
+                {path: '/detail', component: Detail}
                 ],
         }
 
