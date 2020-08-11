@@ -21,7 +21,7 @@ class OrderController extends Controller
 
         $sql = "SELECT * FROM `order` ";
 
-        $total = count( DB::select($sql));
+//        $total = count( DB::select($sql));
 
         $q = $request->input('q');
 
@@ -29,8 +29,15 @@ class OrderController extends Controller
             $sql .= " WHERE order_no like  '%{$q}%' ";
         }
 
+        $sql_count = "SELECT count(*) as num FROM ({$sql}) a ";
+
         $sql .= "limit {$limit} offset {$offset}";
 
+
+        $total = DB::select($sql_count);
+        $total = json_encode($total, true);
+        $total = json_decode($total,true);
+        $total = $total[0]['num'];
 
         $list = DB::select($sql);
         $list = json_encode($list, true);
@@ -59,7 +66,7 @@ class OrderController extends Controller
                 'order_no' => $value['order_no'],
                 'buy_time' => $value['d'],
                 'sales_num' => $sales_num."元",
-                'list' => $tmp
+//                'list' => $tmp
             ];
 
             $tmp =[];
@@ -101,7 +108,25 @@ class OrderController extends Controller
     public function detail(Request $request) {
         $id = $request->input('id');
         if (!$id) return $this->build_return_json(0, [], '缺少必要参数');
-//        if (!$id) return $this->build_return_json()
+        $order = Order::where('id', $id)->first();
+        $cart_ids = json_decode($order->cart_id);
+        $data = [];
+        foreach ($cart_ids as $cart_id) {
+            $cart = Cart::where('cid', 0)->where('operation_id', 0)->where('id', $cart_id)->first();
+            if ($cart) {
+                $goods = Goods::where('id', $cart->goods_id)->first();
+                $data[] = [
+                    'id' => $cart->id,
+                    'goods_no' => $goods->goods_no,
+                    'goods_name' => $goods->goods_name,
+                    'list_img' => $goods->list_img,
+                    'count' => $cart->count,
+                    'spec_name' => $cart->spec_name,
+                    'sales_num' => $cart->sales_price,
+                    'd' => $order->d,
+                ];
+            }
+        }
+        return $this->build_return_json(1, $data, 'success');
     }
-
 }

@@ -30,6 +30,8 @@ class CategoryController extends Controller
     }
 
     public function getCategoryList(Request $request) {
+
+        echo  implode('',['a', 'b', 'c']);die();
         $type = $request->input('type');
         $data = [];
         switch ($type) {
@@ -281,6 +283,41 @@ class CategoryController extends Controller
 
     }
 
+
+    public function test(Request $request)
+    {
+        $id = $request->input('id');
+        $status = $request->input('status');
+
+        $cate = Category::where('id', $id)->first();
+        $cate->operation_id = $status;
+        $cate->save();
+
+        $pid = $cate->pid;
+
+        $cates = Category::where('pid', $pid)->get();
+
+        // false 说明全禁用 true说明有未禁用
+        $flag = false;
+        foreach ($cates as $v) {
+            if ($v->operation_id == 0) {
+                break;
+            } else {
+//                 $p_cate->operation_id = 0;
+//                 $p_cate->save();
+                 echo "aa";
+            }
+//            if ($v->operation_id == 1) {
+//                $flag = true;
+//            }
+        }
+
+//        if ($flag == false) {
+//            $p_cate = Category::where('id', $pid)->first();
+//            $p_cate->operation_id = 0;
+//            $p_cate->save();
+//        }
+    }
 
 }
 

@@ -78,14 +78,23 @@
                 this.getOrderList()
             },
 
-
-            async getOrderList() {
+            getOrderList() {
                 var that = this;
-                const {data: res} = await this.$http.get('/getOrderList',{params: this.params})
-                if (res.status != 1) return this.$message.error(res.msg);
-                that.orderList = res.content.data;
-                that.total = res.content.total;
+                this.$http.get('/getOrderList',{params: this.params}).then(res => {
+                    if (res.data.status != 1) return this.$message.error(res.data.msg);
+                    that.orderList = res.data.content.data;
+                    that.total = res.data.content.total;
+                })
             },
+
+
+            // async getOrderList() {
+            //     var that = this;
+            //     const {data: res} = await this.$http.get('/getOrderList',{params: this.params})
+            //     if (res.status != 1) return this.$message.error(res.msg);
+            //     that.orderList = res.content.data;
+            //     that.total = res.content.total;
+            // },
 
             detail(val) {
                 if(val!=''){

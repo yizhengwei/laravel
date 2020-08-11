@@ -77,9 +77,8 @@ Route::group(['namespace' => 'Service', 'prefix' => 'service'], function () {
     Route::any('/delGoods', 'GoodsController@delGoods');
     Route::any('/getOrderList', 'OrderController@getOrderList');
     Route::any('/delete', 'GoodsController@delete');
-//    Route::any('/curve', 'OrderController@curve');
     Route::any('/curve', 'GoodsController@curve');
     Route::any('/getMemberList', 'MemberController@getMemberList');
-
-
+    Route::any('/orderDetail', 'OrderController@detail');
+    Route::any('/test', 'CategoryController@test');
 });

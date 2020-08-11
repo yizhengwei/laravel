@@ -137,7 +137,7 @@
 
                     <div class="row-start mt16">
                         <p class="form-label mr8"><span class="red">*</span>商品轮播图：</p>
-                        <template v-if="bannerList"  v-for="item in bannerList">
+                        <template v-if="id"  v-for="item in bannerList">
                             <img  :src="item" class="avatar">
                         </template>
                         <el-upload
@@ -205,6 +205,7 @@
     export default {
         data() {
             return {
+                id: '',
                 dialogImageUrl: '',
                 dialogVisible: false,
 
@@ -317,6 +318,7 @@
             async getGoodsData() {
                 var that=this;
                 var form={}
+                that.id = this.$route.query.id
                 form.id=this.$route.query.id
                 if (form.id === undefined) return;
                 const {data: res} =  await this.$http.post('/editView', form);

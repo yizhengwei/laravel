@@ -40,5 +40,9 @@ class PowerController extends Controller
          return $this->build_return_json(1, $roles, 'success');
      }
 
+     public function getRoleList1() {
+
+     }
+
 
 }

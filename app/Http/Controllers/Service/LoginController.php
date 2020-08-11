@@ -17,7 +17,7 @@ class LoginController extends Controller
 
         if (empty($username) || empty($password)) return $this->build_return_json(0, [], "请填写必填项");
 
-        $data = Admin::where('operation_id', 1)->where('username', $username)->first();
+        $data = Admin::where('operation_id', 1)->where('status', 1)->where('username', $username)->first();
         if ($data == null) {
             return $this->build_return_json(0, [], "该用户不存在");
         } else {
